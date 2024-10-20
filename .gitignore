@@ -1,0 +1,12 @@
+.env
+.venv
+.DS_Store
+.sesskey
+__pycache__/
+.vscode/
+
+cache/
+data/
+testing/
+scatch_pad.ipynb
+
