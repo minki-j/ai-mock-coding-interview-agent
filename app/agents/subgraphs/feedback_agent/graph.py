@@ -9,6 +9,8 @@ from app.agents.state_schema import OverallState
 
 
 def generate_feedback(state: OverallState):
+    print("\n>>> NODE: generate_feedback")
+
     return {"message_from_interviewer": "test feedback message"}
 
 

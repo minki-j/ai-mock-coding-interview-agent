@@ -9,6 +9,7 @@ from app.agents.state_schema import OverallState
 
 
 def pick_a_question(state: OverallState):
+    print("\n>>> NODE: pick_a_question")
 
     return {
         "interview_question": "Write a Python function called is_even that takes an integer as input and returns True if the number is even, and False if the number is odd.",
