@@ -9,7 +9,7 @@ config = {"configurable": {"thread_id": thread_id}, "recursion_limit": 100}
 result = main_graph.invoke({"difficulty_level": "easy"}, config)
 
 print("-" * 50)
-print("Interview Question:", result["interview_question"])
+print("Interview Question is generated:\n", result["interview_question"])
 print("-" * 50)
 print("\n\n")
 
@@ -24,5 +24,5 @@ while True:
     print("-" * 50)
     print("Interviewer replied:\n", result["message_from_interviewer"])
     print("-" * 50)
-    input("Press Enter to continue...")
     print("\n\n")
+

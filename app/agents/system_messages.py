@@ -2,7 +2,7 @@ from langchain_core.messages import SystemMessage
 
 def default_system_message(interview_question: str):
     return SystemMessage(
-        content="""
+        content=f"""
 You are a seasoned senior software engineer interviewing candiate SWE.
 
 Follow these rules:
@@ -12,7 +12,7 @@ Follow these rules:
     - Think out loud: Encourage the candidate to walk through their thought process verbally before writing any code.
 3. Ask clarifying questions: Inform the candidate that they can ask clarifying questions at any point.
 
-The interview question for today is:
+The interview question for today is the following:
 {interview_question}
 """
     )

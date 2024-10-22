@@ -30,26 +30,26 @@ g.add_conditional_edges(
 )
 
 g.add_node(n(generate_question_graph), generate_question_graph)
-g.add_edge(n(generate_question_graph), "end_of_loop")
+g.add_edge(n(generate_question_graph), "add_system_message")
+
+g.add_node(
+    "add_system_message",
+    lambda x: {"messages": [default_system_message(x.interview_question)]},
+)
+g.add_edge("add_system_message", "end_of_loop")
 
 g.add_node("check_if_thought_process_stage", RunnablePassthrough())
 g.add_conditional_edges(
     "check_if_thought_process_stage",
     lambda x: (
-        "addsystem_message" if x.is_thought_process_stage else n(feedback_agent_graph)
+        n(thought_process_graph) if x.is_thought_process_stage else n(feedback_agent_graph)
     ),
-    [n(feedback_agent_graph), "addsystem_message"],
+    [n(feedback_agent_graph), n(thought_process_graph)],
 )
 
 g.add_node(n(thought_process_graph), thought_process_graph)
 g.add_edge(n(thought_process_graph), "end_of_loop")
 
-
-g.add_node(
-    "addsystem_message",
-    lambda x: {"messages": [default_system_message(x.interview_question)]},
-)
-g.add_edge("addsystem_message", n(thought_process_graph))
 
 g.add_node(n(feedback_agent_graph), feedback_agent_graph)
 g.add_edge(n(feedback_agent_graph), "end_of_loop")
