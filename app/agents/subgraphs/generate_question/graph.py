@@ -1,3 +1,4 @@
+import datetime
 import os
 from varname import nameof as n
 
@@ -13,6 +14,8 @@ def pick_a_question(state: OverallState):
 
     return {
         "interview_question": "Write a Python function called is_even that takes an integer as input and returns True if the number is even, and False if the number is odd.",
+        "interview_solution": "```python\ndef is_even(number):\n\treturn number % 2 == 0\n```",
+        "start_time": datetime.datetime.now(),
         "is_question_generated": True,
     }
 

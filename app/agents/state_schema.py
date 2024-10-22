@@ -1,3 +1,4 @@
+import datetime
 import uuid
 import operator
 from typing import Annotated, TypedDict, Dict, List
@@ -7,6 +8,8 @@ from langgraph.graph.message import AnyMessage, add_messages
 
 from app.agents.system_messages import default_system_message
 
+INTERVIEW_TIME_IN_SECONDS = 60 # 45 minutes
+THOUGHT_TIME_IN_SECONDS = 20 # 10 minutes
 
 # ===========================================
 #                VARIABLE SCHEMA
@@ -27,12 +30,18 @@ class InputState(BaseModel):
 
 class OutputState(BaseModel):
     interview_question: str = Field(default="")
+    interview_solution: str = Field(default="")
+    user_solution: str = Field(default="")
     message_from_interviewer: str = Field(default="")
 
-
 class OverallState(InputState, OutputState):
+    start_time: datetime.datetime = None
     is_question_generated: bool = False
-    is_thought_process_stage: bool = True
+
+    def is_thought_process_stage(self):
+        if not self.start_time:
+            return True
+        return (datetime.datetime.now() - self.start_time).total_seconds() <= THOUGHT_TIME_IN_SECONDS
 
     code_editor_state: str = Field(default="TESTTEST")
 

@@ -36,7 +36,7 @@ g.add_node("check_if_thought_process_stage", RunnablePassthrough())
 g.add_conditional_edges(
     "check_if_thought_process_stage",
     lambda x: (
-        "addsystem_message" if x.is_thought_process_stage else n(feedback_agent_graph)
+        "addsystem_message" if x.is_thought_process_stage() else n(feedback_agent_graph)
     ),
     [n(feedback_agent_graph), "addsystem_message"],
 )
