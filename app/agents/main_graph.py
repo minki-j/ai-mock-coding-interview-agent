@@ -8,29 +8,13 @@ from langchain_core.runnables import RunnablePassthrough
 
 from app.agents.state_schema import OverallState, InputState, OutputState
 
-from app.agents.subgraphs.generate_question.graph import generate_question_graph
 from app.agents.subgraphs.feedback_agent.graph import feedback_agent_graph
 from app.agents.subgraphs.thought_process.graph import thought_process_graph
 
 from app.agents.system_messages import default_system_message
 
 g = StateGraph(OverallState, input=InputState, output=OutputState)
-
-g.add_edge(START, "check_if_question_generated")
-
-g.add_node("check_if_question_generated", RunnablePassthrough())
-g.add_conditional_edges(
-    "check_if_question_generated",
-    lambda x: (
-        n(generate_question_graph)
-        if not x.is_question_generated
-        else "check_if_thought_process_stage"
-    ),
-    [n(generate_question_graph), "check_if_thought_process_stage"],
-)
-
-g.add_node(n(generate_question_graph), generate_question_graph)
-g.add_edge(n(generate_question_graph), "end_of_loop")
+g.add_edge(START, "check_if_thought_process_stage")
 
 g.add_node("check_if_thought_process_stage", RunnablePassthrough())
 g.add_conditional_edges(
@@ -43,7 +27,6 @@ g.add_conditional_edges(
 
 g.add_node(n(thought_process_graph), thought_process_graph)
 g.add_edge(n(thought_process_graph), "end_of_loop")
-
 
 g.add_node(
     "addsystem_message",

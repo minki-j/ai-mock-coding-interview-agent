@@ -36,13 +36,12 @@ class OutputState(BaseModel):
 
 class OverallState(InputState, OutputState):
     start_time: datetime.datetime = None
-    is_question_generated: bool = False
 
     def is_thought_process_stage(self):
         if not self.start_time:
             return True
         return (datetime.datetime.now() - self.start_time).total_seconds() <= THOUGHT_TIME_IN_SECONDS
 
-    code_editor_state: str = Field(default="TESTTEST")
+    code_editor_state: str = Field(default="TESTCODEEDITORSTATE")
 
     messages: Annotated[list[AnyMessage], add_messages] = Field(default_factory=lambda: [default_system_message]) #! Default messages is not working
