@@ -26,12 +26,11 @@ THOUGHT_TIME_IN_SECONDS = 20 # 10 minutes
 # ===========================================
 class InputState(BaseModel):
     difficulty_level: Literal["easy", "medium", "hard"] = Field(default="easy")
-
-
-class OutputState(BaseModel):
     interview_question: str = Field(default="")
     interview_solution: str = Field(default="")
     user_solution: str = Field(default="")
+
+class OutputState(BaseModel):
     message_from_interviewer: str = Field(default="")
 
 class OverallState(InputState, OutputState):

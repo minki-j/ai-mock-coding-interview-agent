@@ -16,7 +16,6 @@ async def initialize_interview(session, request: Request):
     interview_id = str(uuid.uuid4())
 
     form_data = await request.form()
-    print(f"==>> form_data: {form_data}")
 
     response = main_graph.invoke(
         input={
