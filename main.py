@@ -70,6 +70,7 @@ from app.controllers import profile as profile_controller
 
 from app.views import interview as interview_views
 from app.controllers import code_interpreter as code_interpreter_controller
+from app.controllers import thought_process as thought_process_controller
 
 # Managements
 app.get("/")(home_views.home_view)
@@ -87,6 +88,7 @@ app.get("/interview")(interview_views.interview_view)
 
 app.post("/init")(init_controller.initialize_interview)
 app.post("/run_python")(code_interpreter_controller.run_python)
+app.post("/chat")(thought_process_controller.chat)
 
 
 running_on_server = os.environ.get("RAILWAY_ENVIRONMENT_NAME") == "production"
