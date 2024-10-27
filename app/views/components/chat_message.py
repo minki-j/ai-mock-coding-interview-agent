@@ -6,14 +6,14 @@ def chat_message(role, content):
     return Div(
         Div(
             Div(  # Shows the Role
-                Strong(role.capitalize()),
+                Strong(role),
                 style=f"font-size: 0.9em; letter-spacing: 0.05em;",
             ),
             Div(  # Shows content and applies font color to stuff other than syntax highlighting
                 Style(
                     f".marked *:not(code):not([class^='hljs'])"
                 ),
-                Div(content),
+                P(content),
                 style=f"margin-top: 0.5em;",
             ),
             # extra styling to make things look better

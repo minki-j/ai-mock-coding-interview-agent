@@ -4,6 +4,7 @@ from app.views.components.header import header_component
 
 from interview_questions import INTERVIEW_QUESTION_AND_SOLUTION
 
+
 def home_view(request):
     return (
         Title("AI Coding Interview Agent"),
@@ -26,7 +27,9 @@ def home_view(request):
                             question["difficulty_level"].capitalize(),
                             style="margin-top: 0; color: #333;",
                         ),
-                        P(question["question"], style="color: #666;"),
+                        P(style="height: 500px; overflow-y: scroll; overflow-y: auto;")(
+                            question["question"]
+                        ),
                         Input(
                             type="hidden",
                             name="difficulty",
@@ -38,7 +41,9 @@ def home_view(request):
                         Input(
                             type="hidden", name="solution", value=question["solution"]
                         ),
-                        Div(style="display: flex; justify-content: flex-end; margin-top: 15px;")(
+                        Div(
+                            style="display: flex; justify-content: flex-end; margin-top: 15px;"
+                        )(
                             Button(
                                 "Start Interview",
                                 cls="btn btn-primary",

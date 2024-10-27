@@ -1,6 +1,9 @@
 from fasthtml.common import *
 
 main_css ="""
+p {
+    white-space: pre-wrap;
+}
 .main-page-loader{
     display:none;
 }

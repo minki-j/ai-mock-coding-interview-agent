@@ -28,7 +28,6 @@ class InputState(BaseModel):
     difficulty_level: Literal["easy", "medium", "hard"] = Field(default="easy")
     interview_question: str = Field(default="")
     interview_solution: str = Field(default="")
-    user_solution: str = Field(default="")
 
 class OutputState(BaseModel):
     message_from_interviewer: str = Field(default="")
@@ -41,6 +40,9 @@ class OverallState(InputState, OutputState):
             return True
         return (datetime.datetime.now() - self.start_time).total_seconds() <= THOUGHT_TIME_IN_SECONDS
 
+    test_result: str = Field(default="TESTRESULT")
+    #TODO: evolution of the code and test result. 
     code_editor_state: str = Field(default="TESTCODEEDITORSTATE")
 
     messages: Annotated[list[AnyMessage], add_messages] = Field(default_factory=lambda: [default_system_message]) #! Default messages is not working
+

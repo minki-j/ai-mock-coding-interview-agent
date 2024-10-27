@@ -7,7 +7,7 @@ In this task you are given a coding challenge, the correct solution for the chal
 2. "correct": The correct parts of the user solution
 3. "incorrect": The incorrect parts of the user solution
 
-question: {question}
+question: {question}s
 
 correct_solution: {correct_solution}
 

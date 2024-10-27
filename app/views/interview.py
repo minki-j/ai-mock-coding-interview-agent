@@ -7,6 +7,7 @@ from app.views.components.header import header_component
 from app.views.components.chat_message import chat_message
 from app.views.components.python_editor import python_editor
 
+
 def interview_view(request, id: str):
 
     state = main_graph.get_state(config={"configurable": {"thread_id": id}})
@@ -39,16 +40,16 @@ def interview_view(request, id: str):
                     H3("Chat", style="flex: 0 0 auto; margin-bottom: 10px;"),
                     Div(id="chat-messages")(
                         style="flex: 1; overflow-y: auto; margin-bottom: 10px;",
-                    )(
-                        *[chat_message(role=m[0], content=m[1]) for m in messages]
-                    ),
+                    )(*[chat_message(role=m[0], content=m[1]) for m in messages]),
                     Form(
                         hx_post=f"/chat?id={id}",
                         hx_target="#chat-messages",
                         hx_swap="beforeend",
                         style="flex: 0 0 auto; display: flex; gap: 10px;",
                     )(
-                        Input(style="margin-bottom: 0; flex: 1;", name="message")(type="text"),
+                        Input(style="margin-bottom: 0; flex: 1;", name="message")(
+                            type="text"
+                        ),
                         Button("Send"),
                     ),
                 ),
@@ -60,7 +61,10 @@ def interview_view(request, id: str):
                 Div(
                     style="display: flex; flex-direction: column; gap: 10px; height: 100%"
                 )(
-                    Div(style=box_style)(H3("Question"), P(question)),
+                    Div(style=box_style)(
+                        H3("Question"),
+                        P()(question),
+                    ),
                     Div(style=box_style)(H3("Test result"), P("Test result")),
                     Div(style="display: flex; gap: 10px; width: 100%;")(
                         Button(cls="primary", style="flex: 1; width: calc(50% - 5px);")(
