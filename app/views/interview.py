@@ -4,7 +4,7 @@ from app.agents.main_graph import main_graph
 from langchain_core.messages import SystemMessage, AIMessage
 
 from app.views.components.header import header_component
-from app.views.components.message_bubble import message_bubble_component
+from app.views.components.chat_message import chat_message
 from app.views.components.python_editor import python_editor
 
 def interview_view(request, id: str):
@@ -37,19 +37,18 @@ def interview_view(request, id: str):
                     cls="chat-container",
                 )(
                     H3("Chat", style="flex: 0 0 auto; margin-bottom: 10px;"),
-                    Div(style="flex: 1; overflow-y: auto; margin-bottom: 10px;")(
-                        *[
-                            message_bubble_component(role=m[0], content=m[1])
-                            for m in messages
-                        ]
+                    Div(id="chat-messages")(
+                        style="flex: 1; overflow-y: auto; margin-bottom: 10px;",
+                    )(
+                        *[chat_message(role=m[0], content=m[1]) for m in messages]
                     ),
                     Form(
-                        hx_post="/chat",
-                        hx_target=".chat-container",
+                        hx_post=f"/chat?id={id}",
+                        hx_target="#chat-messages",
                         hx_swap="beforeend",
                         style="flex: 0 0 auto; display: flex; gap: 10px;",
                     )(
-                        Input(style="margin-bottom: 0; flex: 1;")(type="text"),
+                        Input(style="margin-bottom: 0; flex: 1;", name="message")(type="text"),
                         Button("Send"),
                     ),
                 ),

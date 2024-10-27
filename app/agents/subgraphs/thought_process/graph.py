@@ -8,22 +8,24 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from app.agents.state_schema import OverallState
 
-from app.agents.llm_models import chat_model_small
+from app.agents.llm_models import chat_model
+from app.agents.subgraphs.thought_process.prompts import default_system_message
 
 
 def generate_thought_process(state: OverallState):
     print("\n>>> NODE: generate_thought_process")
 
-    chain = (
-        ChatPromptTemplate.from_messages(state.messages)
-        | chat_model_small
-    )
+    messages = state.messages
+    if len(messages) == 0:
+        messages = default_system_message(state.interview_question)
 
-    response = chain.invoke({}) 
+    chain = ChatPromptTemplate.from_messages(messages) | chat_model
+
+    response = chain.invoke({})
 
     return {
         "message_from_interviewer": response.content,
-        "messages": [response],
+        "messages": [*messages, response],
     }
 
 

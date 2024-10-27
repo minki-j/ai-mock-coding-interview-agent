@@ -11,7 +11,6 @@ from app.agents.state_schema import OverallState, InputState, OutputState
 from app.agents.subgraphs.feedback_agent.graph import feedback_agent_graph
 from app.agents.subgraphs.thought_process.graph import thought_process_graph
 
-from app.agents.system_messages import default_system_message
 
 g = StateGraph(OverallState, input=InputState, output=OutputState)
 g.add_edge(START, "check_if_thought_process_stage")
@@ -20,19 +19,15 @@ g.add_node("check_if_thought_process_stage", RunnablePassthrough())
 g.add_conditional_edges(
     "check_if_thought_process_stage",
     lambda x: (
-        "addsystem_message" if x.is_thought_process_stage() else n(feedback_agent_graph)
+        n(thought_process_graph)
+        if x.is_thought_process_stage()
+        else n(feedback_agent_graph)
     ),
-    [n(feedback_agent_graph), "addsystem_message"],
+    [n(feedback_agent_graph), n(thought_process_graph)],
 )
 
 g.add_node(n(thought_process_graph), thought_process_graph)
 g.add_edge(n(thought_process_graph), "end_of_loop")
-
-g.add_node(
-    "addsystem_message",
-    lambda x: {"messages": [default_system_message(x.interview_question)]},
-)
-g.add_edge("addsystem_message", n(thought_process_graph))
 
 g.add_node(n(feedback_agent_graph), feedback_agent_graph)
 g.add_edge(n(feedback_agent_graph), "end_of_loop")
