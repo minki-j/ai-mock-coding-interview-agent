@@ -5,7 +5,7 @@ from langchain_core.messages import SystemMessage, AIMessage
 
 from app.views.components.header import header_component
 from app.views.components.message_bubble import message_bubble_component
-
+from app.views.components.python_editor import python_editor
 
 def interview_view(request, id: str):
 
@@ -56,8 +56,7 @@ def interview_view(request, id: str):
                 Div(
                     style="display: flex; flex-direction: column; gap: 10px; height: 100%"
                 )(
-                    Div(style=box_style)(H3("Code Editor")),
-                    Div(style=box_style)(H3("Output")),
+                    Div(style=box_style)(H3("Code Editor"), python_editor()),
                 ),
                 Div(
                     style="display: flex; flex-direction: column; gap: 10px; height: 100%"
