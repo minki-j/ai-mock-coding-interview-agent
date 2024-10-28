@@ -1,7 +1,7 @@
-INTERVIEW_QUESTION_AND_SOLUTION = [
-    {
-        "difficulty_level": "easy",
-        "question": """Write a Python function is_even that takes an integer num as input and returns True if num is an even number and False if it is an odd number.
+const INTERVIEW_QUESTIONS = [
+  {
+    difficulty_level: "easy",
+    question: `Write a Python function is_even that takes an integer num as input and returns True if num is an even number and False if it is an odd number.
 
 The function should not use any built-in Python functions for checking evenness or oddness (such as num % 2 == 0 or num & 1 == 0). Instead, implement the logic to check if the number is even using only basic arithmetic or bitwise operations.
 
@@ -27,12 +27,14 @@ Explanation: -10 is even, so the function returns True.
 Constraints:
 The input integer num will be in the range of -10^9 <= num <= 10^9.
 Follow-up:
-Can you think of a way to determine evenness using only bitwise operators, which can be more efficient than traditional arithmetic methods?""",
-        "solution": "```python\ndef is_even(number):\n\treturn number % 2 == 0\n```",
-    },
-    {
-        "difficulty_level": "medium",
-        "question": """Write a Python function is_prime that takes an integer num as input and returns True if num is a prime number and False if it is not.
+Can you think of a way to determine evenness using only bitwise operators, which can be more efficient than traditional arithmetic methods?`,
+    solution: `function isEven(number) {
+    return number % 2 === 0;
+}`,
+  },
+  {
+    difficulty_level: "medium",
+    question: `Write a Python function is_prime that takes an integer num as input and returns True if num is a prime number and False if it is not.
 
 A prime number is defined as an integer greater than 1 that has no positive divisors other than 1 and itself.
 
@@ -60,12 +62,22 @@ Explanation: 1 is not considered a prime number.
 Constraints:
 The input integer num will be in the range of 0 <= num <= 10^6.
 Follow-up:
-Can you optimize your algorithm to achieve a time complexity of 𝑂(root(n)) by minimizing the number of divisibility checks? Consider edge cases, such as very small numbers, and account for efficiency in the algorithm design.""",
-        "solution": "```python\ndef is_prime(number):\n\tif number <= 1:\n\t\treturn False\n\tfor i in range(2, int(number ** 0.5) + 1):\n\t\tif number % i == 0:\n\t\t\treturn False\n\treturn True\n```",
-    },
-    {
-        "difficulty_level": "hard",
-        "question": """Write a Python function fibonacci that takes a non-negative integer n as input and returns the nth number in the Fibonacci sequence.
+Can you optimize your algorithm to achieve a time complexity of 𝑂(root(n)) by minimizing the number of divisibility checks? Consider edge cases, such as very small numbers, and account for efficiency in the algorithm design.`,
+    solution: `function isPrime(number) {
+    if (number <= 1) {
+        return false;
+    }
+    for (let i = 2; i <= Math.sqrt(number); i++) {
+        if (number % i === 0) {
+            return false;
+        }
+    }
+    return true;
+}`,
+  },
+  {
+    difficulty_level: "hard",
+    question: `Write a Python function fibonacci that takes a non-negative integer n as input and returns the nth number in the Fibonacci sequence.
 
 The Fibonacci sequence is defined as follows:
 
@@ -95,7 +107,17 @@ Constraints:
 The input integer n will satisfy 0 <= n <= 30.
 Aim to achieve an efficient solution that avoids recalculating values unnecessarily.
 Follow-up:
-Can you optimize your function to handle larger values of n (e.g., up to n = 10^6)? Consider techniques such as memoization or iterative solutions to reduce time complexity.""",
-        "solution": "```python\ndef fibonacci(n):\n\tif n <= 0:\n\t\treturn 0\n\telif n == 1:\n\t\treturn 1\n\telse:\n\t\treturn fibonacci(n-1) + fibonacci(n-2)\n```",
-    },
-]
+Can you optimize your function to handle larger values of n (e.g., up to n = 10^6)? Consider techniques such as memoization or iterative solutions to reduce time complexity.`,
+    solution: `function fibonacci(n) {
+    if (n <= 0) {
+        return 0;
+    } else if (n === 1) {
+        return 1;
+    } else {
+        return fibonacci(n-1) + fibonacci(n-2);
+    }
+}`,
+  },
+];
+
+export default INTERVIEW_QUESTIONS;
