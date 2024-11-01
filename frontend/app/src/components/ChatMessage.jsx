@@ -1,23 +1,15 @@
 import PropTypes from 'prop-types';
 
 const ChatMessage = ({ role, content }) => {
-  const alignment = role === 'AI' ? 'flex-start' : 'flex-end';
+  const alignment = role === 'AI' ? 'justify-start' : 'justify-end';
 
   return (
-    <div style={{ display: 'flex', justifyContent: alignment }}>
-      <div style={{
-        marginBottom: '1em',
-        padding: '1em',
-        border: '0.5px solid var(--pico-border-color)',
-        borderRadius: '24px',
-        maxWidth: '70%',
-        position: 'relative',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)'
-      }}>
-        <div style={{ fontSize: '0.9em', letterSpacing: '0.05em' }}>
+    <div className={`flex ${alignment}`}>
+      <div className="mb-4 p-4 border border-gray-200 rounded-3xl max-w-[70%] relative shadow-md">
+        <div className="text-sm tracking-wider">
           <strong>{role}</strong>
         </div>
-        <div style={{ marginTop: '0.5em' }}>
+        <div className="mt-2">
           <p>{content}</p>
         </div>
       </div>

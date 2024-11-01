@@ -1,5 +1,6 @@
 const INTERVIEW_QUESTIONS = [
   {
+    id: 1,
     difficulty_level: "easy",
     question: `Write a Python function is_even that takes an integer num as input and returns True if num is an even number and False if it is an odd number.
 
@@ -33,6 +34,7 @@ Can you think of a way to determine evenness using only bitwise operators, which
 }`,
   },
   {
+    id: 2,
     difficulty_level: "medium",
     question: `Write a Python function is_prime that takes an integer num as input and returns True if num is a prime number and False if it is not.
 
@@ -76,6 +78,7 @@ Can you optimize your algorithm to achieve a time complexity of 𝑂(root(n)) by
 }`,
   },
   {
+    id: 3,
     difficulty_level: "hard",
     question: `Write a Python function fibonacci that takes a non-negative integer n as input and returns the nth number in the Fibonacci sequence.
 

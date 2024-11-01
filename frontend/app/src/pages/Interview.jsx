@@ -29,90 +29,34 @@ const Interview = () => {
   };
 
   return (
-    <div
-      className="container"
-      style={{
-        height: "calc(100vh - 120px)",
-        maxWidth: "100%",
-      }}
-    >
-      <div
-        className="interview-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "10px",
-          height: "100%",
-        }}
-      >
+    <div className="container h-[calc(100vh-120px)] max-w-full">
+      <div className="grid grid-cols-2 gap-2.5 h-full">
         {/* Chat Section */}
-        <div
-          className="chat-container"
-          style={{
-            borderRadius: "3px",
-            padding: "20px",
-            boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-            backgroundColor: "var(--pico-card-background-color)",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <h3 style={{ flex: "0 0 auto", marginBottom: "10px" }}>Chat</h3>
-          <div
-            id="chat-messages"
-            style={{
-              flex: 1,
-              overflowY: "auto",
-              marginBottom: "10px",
-            }}
-          >
+        <div className="rounded bg-white shadow-md p-5 h-full flex flex-col">
+          <h3 className="flex-none mb-2.5">Chat</h3>
+          <div className="flex-1 overflow-y-auto mb-2.5">
             {messages.map((msg, index) => (
               <ChatMessage key={index} role={msg[0]} content={msg[1]} />
             ))}
           </div>
-          <form
-            onSubmit={handleSendMessage}
-            style={{
-              flex: "0 0 auto",
-              display: "flex",
-              gap: "10px",
-            }}
-          >
+          <form onSubmit={handleSendMessage} className="flex-none flex gap-2.5">
             <input
               type="text"
               name="message"
-              style={{ marginBottom: 0, flex: 1 }}
+              className="flex-1 mb-0"
             />
-            <button type="submit">Send</button>
+            <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">Send</button>
           </form>
         </div>
 
         {/* Code Editor Section */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "10px",
-            height: "100%",
-          }}
-        >
-          <div
-            style={{
-              borderRadius: "3px",
-              padding: "20px",
-              boxShadow: "0 0 10px rgba(0,0,0,0.1)",
-              backgroundColor: "var(--pico-card-background-color)",
-              height: "100%",
-            }}
-          >
-            <h3>Code Editor</h3>
+        <div className="flex flex-col gap-2.5 h-full">
+          <div className="rounded bg-white shadow-md p-5 h-full">
             <PythonEditor />
           </div>
-          <div style={{ display: "flex", gap: "10px", width: "100%" }}>
+          <div className="flex gap-2.5 w-full">
             <button
-              className="contrast"
-              style={{ flex: 1, width: "calc(50% - 5px)" }}
+              className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
               onClick={handleSubmit}
             >
               Submit
@@ -120,16 +64,14 @@ const Interview = () => {
           </div>
         </div>
       </div>
+      
+      {/* Responsive styles */}
       <style>
         {`
           @media (max-width: 1024px) {
-            .interview-grid {
-              grid-template-columns: 1fr !important;
-              height: auto !important;
-            }
-            .chat-container {
-              height: 50vh !important;
-            }
+            .grid { grid-template-columns: 1fr !important; }
+            .h-full { height: auto !important; }
+            .chat-container { height: 50vh !important; }
           }
         `}
       </style>

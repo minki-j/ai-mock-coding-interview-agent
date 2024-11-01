@@ -15,7 +15,6 @@ const Login = () => {
   const handleLoginSuccess = (response) => {
     console.log("Login Success");
     sessionStorage.setItem('userId', response.clientId);
-
     navigate("/");
   };
 
@@ -24,16 +23,17 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h1>Login Page</h1>
-      <p>Please login to continue.</p>
-      <GoogleLogin
-        onSuccess={handleLoginSuccess}
-        onError={handleLoginFailure}
-      />
+    <div className="flex flex-col items-center justify-center min-h-[80vh] space-y-6">
+      <h1 className="text-4xl font-bold text-gray-800">Login Page</h1>
+      <p className="text-lg text-gray-600">Please login to continue.</p>
+      <div className="mt-4">
+        <GoogleLogin
+          onSuccess={handleLoginSuccess}
+          onError={handleLoginFailure}
+        />
+      </div>
     </div>
   );
 };
-
 
 export default Login;

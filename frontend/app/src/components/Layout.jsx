@@ -10,38 +10,32 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="layout">
-      <header className="container" style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        maxWidth: '100%',
-        width: '95%'
-      }}>
-        <Link to="/" style={{ textDecoration: 'none' }}>
-          <h1 style={{
-            fontWeight: 900,
-            fontSize: '2.8rem',
-            color: '#4A4A4A',
-            margin: 0,
-            textTransform: 'uppercase',
-            letterSpacing: '1px'
-          }}>
+    <div className="min-h-screen">
+      <header className="container mx-auto px-4 py-6 flex justify-between items-center">
+        <Link to="/" className="no-underline">
+          <h1 className="text-4xl font-black text-gray-700 uppercase tracking-wider m-0">
             AI Coding Interview Agent
           </h1>
         </Link>
         
         <div className="profile-section">
-          <details className="dropdown" style={{ margin: 0 }}>
+          <details className="dropdown m-0">
             <summary>Profile</summary>
             <ul>
               <li><Link to="/settings">Settings</Link></li>
-              <li><button onClick={handleLogout} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'blue', textDecoration: 'underline' }}>Logout</button></li>
+              <li>
+                <button 
+                  onClick={handleLogout} 
+                  className="bg-transparent border-none cursor-pointer text-blue-500 underline"
+                >
+                  Logout
+                </button>
+              </li>
             </ul>
           </details>
         </div>
       </header>
-      <main className="container">
+      <main className="container mx-auto px-4">
         {children}
       </main>
     </div>
