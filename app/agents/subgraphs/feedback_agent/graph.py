@@ -1,6 +1,6 @@
 import os
 from varname import nameof as n
-
+from pydantic import BaseModel, Field
 from langgraph.graph import START, END, StateGraph
 
 from langchain_core.messages import SystemMessage, HumanMessage
@@ -70,17 +70,24 @@ def generate_code_feedback(state: OverallState):
         }
     )
 
-    chain =  ChatPromptTemplate.from_template(prompts.SOLUTION_ELIMINATION_PROMPT) | chat_model
+    class SolutionEliminationResponse(BaseModel):
+        is_solution_revealed: bool = Field(description="Whether the solution is revealed in the feedback.")
+        amended_feedback: str = Field(description="The feedback with the solution removed. If the solution is not revealed, return an empty string.")
 
-    validated_response = chain.invoke({
+    chain =  ChatPromptTemplate.from_template(prompts.SOLUTION_ELIMINATION_PROMPT) | chat_model.with_structured_outputs(SolutionEliminationResponse)
+
+    validation_result = chain.invoke({
             'question': state.interview_question,
             'solution': state.interview_solution,
             'feedback': feedback_response.content
         })
 
+    if validation_result.is_solution_revealed:
+        feedback_response.content = validation_result.amended_feedback
+
     return {
-        "message_from_interviewer": validated_response.content,
-        "messages": [validated_response],
+        "message_from_interviewer": feedback_response.content,
+        "messages": [feedback_response],
     }
 
 def should_generate_code_feedback(state: OverallState, config):
@@ -95,7 +102,7 @@ g.add_edge(START, n(should_generate_code_feedback))
 
 g.add_node(n(generate_code_feedback), generate_code_feedback)
 g.add_node(n(generate_default_feedback), generate_default_feedback)
-g.add_conditional_edges(n(should_generate_code_feedback), should_generate_code_feedback)
+g.add_conditional_edges(n(should_generate_code_feedback), should_generate_code_feedback, [n(generate_code_feedback), n(generate_default_feedback)]) # add the list of nodes to display diagram correctly
 
 g.add_edge(n(generate_code_feedback), END)
 g.add_edge(n(generate_default_feedback), END)
