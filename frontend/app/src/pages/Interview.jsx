@@ -91,9 +91,12 @@ const Interview = () => {
       <div className="grid grid-cols-2 gap-2.5 h-full">
         {/* Chat UI Kit Section */}
         <div className="col-span-1 flex flex-col">
-          <MainContainer className="flex-1">
+          <MainContainer className="flex-1 px-4 py-2 bg-gray-700 shadow-md text-white rounded">
             <ChatContainer className="flex-1">
-              <MessageList ref={messageListRef}>
+              <MessageList 
+                ref={messageListRef} 
+                style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }} // Adjust height as needed
+              >
                 {messages.map((msg, index) => (
                   <Message
                     key={index}

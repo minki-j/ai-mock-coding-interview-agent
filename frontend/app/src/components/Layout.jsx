@@ -19,19 +19,31 @@ const Layout = ({ children }) => {
         </Link>
         
         <div className="profile-section">
-          <details className="dropdown m-0">
+          <details className="dropdown m-0" style={{ position: 'relative' }}>
             <summary>Profile</summary>
-            <ul>
-              <li><Link to="/settings">Settings</Link></li>
-              <li>
-                <button 
-                  onClick={handleLogout} 
-                  className="bg-transparent border-none cursor-pointer text-blue-500 underline"
-                >
-                  Logout
-                </button>
-              </li>
-            </ul>
+            <div 
+              className="dropdown-container" 
+              style={{ 
+                position: 'absolute', 
+                zIndex: 1, 
+                backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                borderRadius: '8px',
+                padding: '10px',
+                marginTop: '5px'
+              }}
+            >
+              <ul>
+                <li><Link to="/settings">Settings</Link></li>
+                <li>
+                  <button 
+                    onClick={handleLogout} 
+                    className="bg-transparent border-none cursor-pointer text-blue-500 underline"
+                  >
+                    Logout
+                  </button>
+                </li>
+              </ul>
+            </div>
           </details>
         </div>
       </header>
