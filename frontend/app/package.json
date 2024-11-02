@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chatscope/chat-ui-kit-react": "^2.0.3",
+    "@chatscope/chat-ui-kit-styles": "^1.4.0",
     "@react-oauth/google": "^0.12.1",
     "@uiw/react-textarea-code-editor": "^3.1.0",
     "dotenv": "^16.4.5",
