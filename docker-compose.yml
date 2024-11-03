@@ -6,6 +6,8 @@ services:
       context: ./backend
     ports:
       - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://admin:password456@mongodb:27017
     volumes:
       - ./backend/app:/code/app
     restart: unless-stopped
@@ -16,3 +18,22 @@ services:
         limits:
           cpus: '1'
           memory: 512M
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password456
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+volumes:
+  mongodb_data:

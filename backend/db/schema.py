@@ -1,33 +1,24 @@
-from typing import Annotated
 import datetime
-from typing import Literal
+from typing import Literal, Optional
+from pydantic import BaseModel
 
-from fastapi import Depends, FastAPI, HTTPException, Query
-from sqlmodel import Field, Session, SQLModel, create_engine, select
-
-
-class User(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
-
-class Interview(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class Interview(BaseModel):
+    id: Optional[str] = None
     interview_question: str
     interview_solution: str
-    user_id: int = Field(foreign_key="user.id")
+    user_id: str
 
-class Message(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class Message(BaseModel):
+    id: Optional[str] = None
     message: str
-    sent_time: datetime.datetime = Field(default=datetime.datetime.now())
+    sent_time: datetime.datetime = datetime.datetime.now()
     sender: Literal["AI", "USER"]
-    interview_id: int = Field(foreign_key="interview.id")
+    interview_id: str
 
-class CodeEditorState(SQLModel, table=True):
-    # Only update when the code is ran
-    id: int | None = Field(default=None, primary_key=True)
+class CodeEditorState(BaseModel):
+    id: Optional[str] = None
     code: str
     test_result: str
-    interview_id: int = Field(foreign_key="interview.id")
+    interview_id: str
 
     

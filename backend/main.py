@@ -1,46 +1,18 @@
+import datetime
 import os
 import subprocess
 import tempfile
 import uuid
-from typing import Optional, List, Dict, Annotated
-import datetime
-from contextlib import asynccontextmanager
-
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from sqlmodel import create_engine, SQLModel, Session
+from typing import List, Optional
 
 from agents.main_graph import main_graph
-from db.schema import User, Interview, Message, CodeEditorState
+from db.schema import Interview, Message, User
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from mongo import insert_document
+from pydantic import BaseModel
 
-
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url, connect_args=connect_args)
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Startup
-    create_db_and_tables()
-    yield
-    # Shutdown (if needed)
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
-app = FastAPI(title="Python Code Execution Service", lifespan=lifespan)
+app = FastAPI(title="Python Code Execution Service")
 
 
 # Add CORS middleware
@@ -160,14 +132,13 @@ async def execute_code(code_execution: CodeExecution):
 
 
 @app.post("/add_user")
-async def add_user(user: User, session: SessionDep):
+async def add_user(user: User):
     print("/add_user", user)
-    session.add(user)
-    session.commit()
-    return user
+    user_id = await insert_document("users", user)
+    return {"id": str(user_id), **user.model_dump()}
 
 @app.post("/init_interview")
-async def init_interview(interview_info: Interview, session: SessionDep):
+async def init_interview(interview_info: Interview):
     output = main_graph.invoke(
         input={
             "interview_question": interview_info.interview_question,
@@ -179,48 +150,54 @@ async def init_interview(interview_info: Interview, session: SessionDep):
         },
     )
 
-    session.add(
-        Interview(
-            id=interview_info.id,
-            interview_question=interview_info.interview_question,
-            interview_solution=interview_info.interview_solution,
-            user_id=interview_info.user_id,
-        )
-    )
-    session.commit()
+    # Insert interview document
+    interview_id = await insert_document("interviews", interview_info)
 
+    # Create and insert message document
     message = Message(
         message=output.message_from_interviewer,
-        sentTime=datetime.datetime.now().isoformat(),
+        sent_time=datetime.datetime.now(),
         sender="AI",
-        interview_id=interview_info.id,
+        interview_id=str(interview_id)  # Convert ObjectId to string
     )
-    session.add(message)
-    session.commit()
+    message_id = await insert_document("messages", message)
 
-    return message
+    # Update the message with its MongoDB id before returning
+    return {
+        "id": str(message_id),
+        **message.model_dump(exclude={'id'})
+    }
 
 
 @app.post("/chat", response_model=Message)
-async def chat(user_msg: Message, session: SessionDep):
-    config = (
-        {"configurable": {"thread_id": user_msg.interview_id}, "recursion_limit": 100},
-    )
+async def chat(user_msg: Message):
+    config = {
+        "configurable": {"thread_id": user_msg.interview_id},
+        "recursion_limit": 100
+    }
+    
     main_graph.update_state(
         config,
         {"messages": [{"role": "user", "content": user_msg.message}]},
     )
     output = main_graph.invoke(None, config)
-    session.add(user_msg)
+
+    # Insert user message
+    await insert_document("messages", user_msg)
+    
+    # Create and insert AI reply
     reply = Message(
         interview_id=user_msg.interview_id,
         message=output.message_from_interviewer,
-        sentTime=datetime.datetime.now().isoformat(),
+        sent_time=datetime.datetime.now(),
         sender="AI",
     )
-    session.add(reply)
-    session.commit()
-    return reply
+    reply_id = await insert_document("messages", reply)
+    
+    return {
+        "id": str(reply_id),
+        **reply.model_dump(exclude={'id'})
+    }
 
 
 class InterviewUIState(BaseModel):
