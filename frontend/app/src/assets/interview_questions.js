@@ -1,3 +1,4 @@
+// TODO: add explanations
 const INTERVIEW_QUESTIONS = [
   {
     id: 1,

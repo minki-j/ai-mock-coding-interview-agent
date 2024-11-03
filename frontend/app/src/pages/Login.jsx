@@ -1,7 +1,7 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // TODO: install npm package
 
 const Login = () => {
   const navigate = useNavigate();
@@ -15,16 +15,19 @@ const Login = () => {
 
   const handleLoginSuccess = async (response) => {
     console.log("Login Success");
-    const decoded = jwt_decode(response.credential);
-    console.log("======= decoded =======\n", decoded);
-    sessionStorage.setItem("userId", decoded.sub);
+    const decoded = jwtDecode(response.credential);
     const res = await fetch("/add_user", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({
-        id: decoded.sub,
+        oauth_id: decoded.sub,
         name: decoded.name,
       }),
     });
+    const data = await res.json();
+    sessionStorage.setItem("userId", data.id);
     if (res.ok) {
       navigate("/");
     }

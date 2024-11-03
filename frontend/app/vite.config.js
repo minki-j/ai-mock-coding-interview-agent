@@ -8,18 +8,26 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/execute': {
+      "/execute": {
         target: backendUrl,
         changeOrigin: true,
       },
-      '/chat': {
+      "/get_interview": {
         target: backendUrl,
         changeOrigin: true,
       },
-      '/init_interview': {
+      "/chat": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/init_interview": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/add_user": {
         target: backendUrl,
         changeOrigin: true,
       },
     },
   },
-})
+});

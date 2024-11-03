@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import PropTypes from 'prop-types';
 
 import Home from './pages/Home';
 import Interview from './pages/Interview';
@@ -11,10 +10,6 @@ function ProtectedRoutes() {
   const userId = sessionStorage.getItem('userId');
   return userId ? <Outlet /> : <Navigate to="/login" />;
 }
-
-ProtectedRoutes.propTypes = {
-  isLoggedIn: PropTypes.bool.isRequired,
-};
 
 function App() {
 

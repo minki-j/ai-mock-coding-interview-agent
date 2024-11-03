@@ -1,14 +1,17 @@
-version: '3.8'
-
 services:
   code-execution:
     build:
       context: ./backend
     ports:
       - "8000:8000"
+    environment:
+      - MONGO_URL=mongodb://mongodb:27017
     volumes:
       - ./backend/app:/code/app
     restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
     security_opt:
       - seccomp=unconfined
     deploy:
@@ -16,3 +19,25 @@ services:
         limits:
           cpus: '1'
           memory: 512M
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  mongodb_data:
