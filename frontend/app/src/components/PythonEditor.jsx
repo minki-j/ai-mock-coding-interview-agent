@@ -1,33 +1,7 @@
-import { useState } from "react";
-
+import PropTypes from "prop-types";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 
-
-const PythonEditor = () => {
-  const [code, setCode] = useState(`def greet(name):
-  print("Hello, " + name)
-
-greet("Minki")`);
-  const [testResults, setTestResults] = useState('');
-
-  const executeCode = async () => {
-    setTestResults('Running code...');
-    try {
-      const response = await fetch('http://localhost:8000/execute-code', {
-        method: 'POST',
-      body: JSON.stringify({ code }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      setTestResults(data.output);
-    } else {
-        setTestResults('Error executing code');
-      }
-    } catch (error) {
-      setTestResults(`Error: ${error.message}`);
-    }
-  };
-
+const PythonEditor = ({ code, setCode, testResult, executeCode }) => {
   return (
     <div>
       <div className="flex flex-col gap-2.5">
@@ -54,10 +28,17 @@ greet("Minki")`);
       </div>
       <div className="mt-8 border border-gray-200 rounded-lg p-5">
         <h4 className="text-lg font-semibold mb-2">Test Results</h4>
-        <div>{testResults}</div>
+        <div>{testResult}</div>
       </div>
     </div>
   );
+};
+
+PythonEditor.propTypes = {
+  code: PropTypes.string.isRequired,
+  setCode: PropTypes.func.isRequired,
+  testResult: PropTypes.string.isRequired,
+  executeCode: PropTypes.func.isRequired,
 };
 
 export default PythonEditor;
