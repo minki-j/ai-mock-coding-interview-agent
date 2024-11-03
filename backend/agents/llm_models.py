@@ -6,13 +6,16 @@ from langchain_openai import ChatOpenAI, OpenAI
 from langchain_anthropic import ChatAnthropic, Anthropic
 
 load_dotenv('.env', override=True)
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL")
-FALLBACK_MODEL = os.getenv("FALLBACK_MODEL")
-LLM_TEMPERATURE = os.getenv("LLM_TEMPERATURE")
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-latest")
+FALLBACK_MODEL = os.getenv("FALLBACK_MODEL", "gpt-4o-2024-08-06")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", 0.7))
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 if "claude" in DEFAULT_MODEL:
+    if not ANTHROPIC_API_KEY:
+        raise ValueError("Anthropic API key is not set")
+    
     chat_model = ChatAnthropic(
         model=DEFAULT_MODEL,
         api_key=ANTHROPIC_API_KEY,
@@ -40,6 +43,9 @@ if "claude" in DEFAULT_MODEL:
         ]
     )
 elif "gpt" in DEFAULT_MODEL:
+    if not OPENAI_API_KEY:
+        raise ValueError("OpenAI API key is not set")
+    
     chat_model = ChatOpenAI(
         model=DEFAULT_MODEL,
         api_key=OPENAI_API_KEY,
