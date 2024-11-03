@@ -9,7 +9,7 @@ from langgraph.graph.message import AnyMessage, add_messages
 from app.agents.subgraphs.thought_process.prompts import default_system_message
 
 INTERVIEW_TIME_IN_SECONDS = 60 # 45 minutes
-THOUGHT_TIME_IN_SECONDS = 20 # 10 minutes
+THOUGHT_TIME_IN_SECONDS = 10 # 10 minutes
 
 # ===========================================
 #                VARIABLE SCHEMA
@@ -33,7 +33,7 @@ class OutputState(BaseModel):
     message_from_interviewer: str = Field(default="")
 
 class OverallState(InputState, OutputState):
-    start_time: datetime.datetime = None
+    start_time: datetime.datetime = Field(default=datetime.datetime.now())
 
     def is_thought_process_stage(self):
         if not self.start_time:
