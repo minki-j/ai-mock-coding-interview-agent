@@ -11,3 +11,4 @@ langgraph.checkpoint.sqlite==1.0.4
 pydantic==2.9.2
 python-dotenv==1.0.1
 varname==0.13.5
+sqlmodel==0.0.22

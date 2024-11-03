@@ -27,14 +27,6 @@ const initialMessages = [
 
 import messageSound from "../assets/sounds/message-pop-alert.mp3";
 
-// Define mock messages outside the Interview component
-const mockResponses = [
-  "That's an interesting approach!",
-  "Can you explain your thought process?",
-  "What would you do differently?",
-  "Let's break this down step by step.",
-  "Have you considered edge cases?",
-];
 
 const Interview = () => {
   const { id } = useParams();
@@ -75,41 +67,49 @@ const Interview = () => {
   }, [id]);
 
   const handleSendMessage = async (message) => {
+    console.log("Sending message:", message);
     // Add user message to chat
     const userMessage = {
       message: message,
-      sentTime: "just now",
+      sentTime: new Date().toISOString(),
       sender: "User",
-      direction: "outgoing",
     };
 
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
-    // Simulate interviewer response with a random message
-    const randomResponse =
-      mockResponses[Math.floor(Math.random() * mockResponses.length)];
+    try {
+      const response = await fetch("/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(userMessage),
+      });
+      
+      const responseData = await response.json(); // Parse the JSON response
+      
+      const interviewerMessage = {
+        message: responseData.message,
+        sentTime: responseData.sentTime,
+        sender: responseData.sender,
+      };
 
-    // Add interviewer response to chat
-    const interviewerMessage = {
-      message: randomResponse,
-      sentTime: "just now",
-      sender: "Interviewer",
-      direction: "incoming",
-    };
-
-    // Use a timeout to ensure the sound plays after the message is added
-    setTimeout(() => {
-      setMessages((prevMessages) => [...prevMessages, interviewerMessage]);
-      const audio = new Audio(messageSound);
-      audio.play(); // Play sound when interviewer responds
-    }, 100); // Delay to allow for the message to be rendered before playing sound
+      // Use a timeout to ensure the sound plays after the message is added
+      setTimeout(() => {
+        setMessages((prevMessages) => [...prevMessages, interviewerMessage]);
+        const audio = new Audio(messageSound);
+        audio.play(); // Play sound when interviewer responds
+      }, 100);
+    } catch (error) {
+      console.error("Error handling chat response:", error);
+      // Optionally handle the error in the UI
+    }
   };
 
   const handleFinalSolutionSubmit = async (e) => {
     e.preventDefault();
-    // Here you can handle the code submission logic
     console.log("Code submitted:", code);
-    // You can also send the code to a backend or evaluate it
+    // Here you can handle the code submission logic
   };
 
   return (
@@ -122,8 +122,8 @@ const Interview = () => {
             onSendMessage={handleSendMessage}
           />
         </div>
-        {/* Code Editor Section */}
         <div className="col-span-1 flex flex-col gap-2.5 h-full">
+          {/* Code Editor Section */}
           <div className="rounded bg-white shadow-md p-5 flex-1">
             <PythonEditor
               code={code}
@@ -132,6 +132,7 @@ const Interview = () => {
               executeCode={executeCode}
             />
           </div>
+          {/* Submit Button Section */}
           <div className="flex gap-2.5 w-full">
             <button
               className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"

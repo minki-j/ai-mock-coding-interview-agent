@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import INTERVIEW_QUESTIONS from '../assets/interview_questions';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +7,14 @@ const Home = () => {
   const navigate = useNavigate();
 
   const handleStartInterview = async (question) => {
-    navigate(`/interview/${question.id}`);
+    const id = uuidv4();
+    const response = await fetch('/init_interview', {
+      method: 'POST',
+      body: JSON.stringify({ id: id, interview_question: question.question, interview_solution: question.solution }),
+    });
+    const data = await response.json();
+
+    navigate(`/interview/${id}`);
   };
     
   return (

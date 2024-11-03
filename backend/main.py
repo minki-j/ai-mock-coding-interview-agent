@@ -2,13 +2,46 @@ import os
 import subprocess
 import tempfile
 import uuid
-from typing import Optional
+from typing import Optional, List, Dict, Annotated
+import datetime
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from sqlmodel import create_engine, SQLModel, Session
 
-app = FastAPI(title="Python Code Execution Service")
+from agents.main_graph import main_graph
+from db.schema import User, Interview, Message, CodeEditorState
+
+
+sqlite_file_name = "database.db"
+sqlite_url = f"sqlite:///{sqlite_file_name}"
+
+connect_args = {"check_same_thread": False}
+engine = create_engine(sqlite_url, connect_args=connect_args)
+
+
+def create_db_and_tables():
+    SQLModel.metadata.create_all(engine)
+
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    create_db_and_tables()
+    yield
+    # Shutdown (if needed)
+
+
+SessionDep = Annotated[Session, Depends(get_session)]
+app = FastAPI(title="Python Code Execution Service", lifespan=lifespan)
+
 
 # Add CORS middleware
 app.add_middleware(
@@ -22,13 +55,20 @@ app.add_middleware(
 
 class CodeExecution(BaseModel):
     code: str
-    timeout: Optional[int] = 5  # Default timeout in seconds
+    timeout: Optional[int] = 5000  # Default timeout in milliseconds
 
 
 class ExecutionResult(BaseModel):
     output: str
     error: Optional[str] = None
     execution_time: float
+
+
+@app.post("/format")
+async def format_code(code_execution: CodeExecution):
+    """Preview how the code will be formatted without executing it"""
+    normalized_code = normalize_indentation(code_execution.code)
+    return {"original_code": code_execution.code, "formatted_code": normalized_code}
 
 
 def normalize_indentation(code: str) -> str:
@@ -119,11 +159,79 @@ async def execute_code(code_execution: CodeExecution):
             pass
 
 
-@app.post("/format")
-async def format_code(code_execution: CodeExecution):
-    """Preview how the code will be formatted without executing it"""
-    normalized_code = normalize_indentation(code_execution.code)
-    return {"original_code": code_execution.code, "formatted_code": normalized_code}
+@app.post("/add_user")
+async def add_user(user: User, session: SessionDep):
+    print("/add_user", user)
+    session.add(user)
+    session.commit()
+    return user
+
+@app.post("/init_interview")
+async def init_interview(interview_info: Interview, session: SessionDep):
+    output = main_graph.invoke(
+        input={
+            "interview_question": interview_info.interview_question,
+            "interview_solution": interview_info.interview_solution,
+        },
+        config={
+            "configurable": {"thread_id": interview_info.id},
+            "recursion_limit": 100,
+        },
+    )
+
+    session.add(
+        Interview(
+            id=interview_info.id,
+            interview_question=interview_info.interview_question,
+            interview_solution=interview_info.interview_solution,
+            user_id=interview_info.user_id,
+        )
+    )
+    session.commit()
+
+    message = Message(
+        message=output.message_from_interviewer,
+        sentTime=datetime.datetime.now().isoformat(),
+        sender="AI",
+        interview_id=interview_info.id,
+    )
+    session.add(message)
+    session.commit()
+
+    return message
+
+
+@app.post("/chat", response_model=Message)
+async def chat(user_msg: Message, session: SessionDep):
+    config = (
+        {"configurable": {"thread_id": user_msg.interview_id}, "recursion_limit": 100},
+    )
+    main_graph.update_state(
+        config,
+        {"messages": [{"role": "user", "content": user_msg.message}]},
+    )
+    output = main_graph.invoke(None, config)
+    session.add(user_msg)
+    reply = Message(
+        interview_id=user_msg.interview_id,
+        message=output.message_from_interviewer,
+        sentTime=datetime.datetime.now().isoformat(),
+        sender="AI",
+    )
+    session.add(reply)
+    session.commit()
+    return reply
+
+
+class InterviewUIState(BaseModel):
+    messages: List[Message]
+    code_editor_state: str
+    test_result: str
+
+
+@app.get("/interview/{id}")
+async def get_interview(id: str):
+    return InterviewUIState()
 
 
 @app.get("/health")

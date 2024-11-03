@@ -1,25 +1,37 @@
-import { GoogleLogin } from '@react-oauth/google';
-import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { GoogleLogin } from "@react-oauth/google";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import jwt_decode from "jwt-decode";
 
 const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const userId = sessionStorage.getItem('userId');
+    const userId = sessionStorage.getItem("userId");
     if (userId) {
       navigate("/");
     }
   }, [navigate]);
 
-  const handleLoginSuccess = (response) => {
+  const handleLoginSuccess = async (response) => {
     console.log("Login Success");
-    sessionStorage.setItem('userId', response.clientId);
-    navigate("/");
+    const decoded = jwt_decode(response.credential);
+    console.log("======= decoded =======\n", decoded);
+    sessionStorage.setItem("userId", decoded.sub);
+    const res = await fetch("/add_user", {
+      method: "POST",
+      body: JSON.stringify({
+        id: decoded.sub,
+        name: decoded.name,
+      }),
+    });
+    if (res.ok) {
+      navigate("/");
+    }
   };
 
   const handleLoginFailure = (error) => {
-    console.error('Login Failed:', error);
+    console.error("Login Failed:", error);
   };
 
   return (
