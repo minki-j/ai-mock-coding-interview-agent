@@ -7,18 +7,6 @@ class Interview(BaseModel):
     interview_question: str
     interview_solution: str
     user_id: str
-
-class Message(BaseModel):
-    id: Optional[str] = None
-    message: str
-    sent_time: datetime.datetime = datetime.datetime.now()
-    sender: Literal["AI", "USER"]
-    interview_id: str
-
-class CodeEditorState(BaseModel):
-    id: Optional[str] = None
-    code: str
+    final_solution: str
     test_result: str
-    interview_id: str
-
-    
+    feedback: str
