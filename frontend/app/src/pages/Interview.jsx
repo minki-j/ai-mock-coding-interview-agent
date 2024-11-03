@@ -63,8 +63,25 @@ const Interview = () => {
   };
 
   useEffect(() => {
-    // TODO: Fetch initial state from backend
-  }, [id]);
+    console.log("fetching interview with id", id);
+    const fetchInterview = async () => {
+      try {
+        const res = await fetch(`/get_interview/${id}`);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+        setMessages(data.messages || initialMessages);
+        setCode(data.code_editor_state || code);
+        setTestResults(data.test_result || '');
+      } catch (error) {
+        console.error("Error fetching interview:", error);
+        // Fallback to initial states if fetch fails
+        setMessages(initialMessages);
+      }
+    };
+    fetchInterview();
+  }, []);
 
   const handleSendMessage = async (message) => {
     console.log("Sending message:", message);

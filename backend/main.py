@@ -6,11 +6,12 @@ import uuid
 from typing import List, Optional
 
 from agents.main_graph import main_graph
-from db.schema import Interview, Message, User
+from db.schema import Interview, Message
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from mongo import insert_document
+from mongo import find_many, find_one, insert_document
 from pydantic import BaseModel
+from bson import ObjectId
 
 app = FastAPI(title="Python Code Execution Service")
 
@@ -132,40 +133,50 @@ async def execute_code(code_execution: CodeExecution):
 
 
 @app.post("/add_user")
-async def add_user(user: User):
-    print("/add_user", user)
+async def add_user(user: dict):  
+    # Check if oauth_id is provided
+    if "oauth_id" not in user:
+        raise HTTPException(status_code=400, detail="oauth_id is required")
+        
+    # Check if user exists using oauth_id
+    existing_user = await find_one("users", {"oauth_id": user["oauth_id"]})
+    if existing_user:
+        print("the user already exists")
+        return existing_user
+    
+    # If user doesn't exist, insert new user
+    print("inserting new user")
     user_id = await insert_document("users", user)
-    return {"id": str(user_id), **user.model_dump()}
+    return {"id": str(user_id), **user}
+
 
 @app.post("/init_interview")
 async def init_interview(interview_info: Interview):
+    # Insert interview document
+    interview_id = await insert_document("interviews", interview_info)
+
     output = main_graph.invoke(
         input={
             "interview_question": interview_info.interview_question,
             "interview_solution": interview_info.interview_solution,
         },
         config={
-            "configurable": {"thread_id": interview_info.id},
+            "configurable": {"thread_id": interview_id, "get_code_feedback": True},
             "recursion_limit": 100,
         },
     )
 
-    # Insert interview document
-    interview_id = await insert_document("interviews", interview_info)
-
     # Create and insert message document
     message = Message(
-        message=output.message_from_interviewer,
+        message=output["message_from_interviewer"],
         sent_time=datetime.datetime.now(),
         sender="AI",
-        interview_id=str(interview_id)  # Convert ObjectId to string
+        interview_id=str(interview_id),  # Convert ObjectId to string
     )
     message_id = await insert_document("messages", message)
 
-    # Update the message with its MongoDB id before returning
     return {
-        "id": str(message_id),
-        **message.model_dump(exclude={'id'})
+        "interview_id": str(interview_id),
     }
 
 
@@ -201,14 +212,37 @@ async def chat(user_msg: Message):
 
 
 class InterviewUIState(BaseModel):
+    interview_question: str
     messages: List[Message]
     code_editor_state: str
     test_result: str
 
 
-@app.get("/interview/{id}")
+@app.get("/get_interview/{id}")
 async def get_interview(id: str):
-    return InterviewUIState()
+    print("getting interview with id", id)
+    interview = await find_one("interviews", {"_id": ObjectId(id)})
+    if not interview:
+        raise HTTPException(status_code=404, detail="Interview not found")
+        
+    messages = await find_many("messages", {"interview_id": id})
+    code_editor_state = await find_one("code_editor_states", {"interview_id": id})
+    
+    if not code_editor_state:
+        # Return default empty state if no code editor state exists
+        return InterviewUIState(
+            interview_question=interview["interview_question"],
+            messages=messages or [],
+            code_editor_state="",
+            test_result=""
+        )
+        
+    return InterviewUIState(
+        interview_question=interview["interview_question"],
+        messages=messages or [], 
+        code_editor_state=code_editor_state.get("code", ""),
+        test_result=code_editor_state.get("test_result", "")
+    )
 
 
 @app.get("/health")

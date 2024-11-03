@@ -74,7 +74,9 @@ def generate_code_feedback(state: OverallState):
         is_solution_revealed: bool = Field(description="Whether the solution is revealed in the feedback.")
         amended_feedback: str = Field(description="The feedback with the solution removed. If the solution is not revealed, return an empty string.")
 
-    chain =  ChatPromptTemplate.from_template(prompts.SOLUTION_ELIMINATION_PROMPT) | chat_model.with_structured_outputs(SolutionEliminationResponse)
+    chain = ChatPromptTemplate.from_template(
+        prompts.SOLUTION_ELIMINATION_PROMPT
+    ) | chat_model.with_structured_output(SolutionEliminationResponse)
 
     validation_result = chain.invoke({
             'question': state.interview_question,
