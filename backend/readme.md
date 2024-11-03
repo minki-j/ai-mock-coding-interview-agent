@@ -44,6 +44,15 @@ python-execution-service/
 docker-compose up --build
 ```
 
+4. Install and run MongoDB server locally
+```bash
+brew tap mongodb/brew
+brew install mongodb-community
+
+brew services start mongodb-community
+```
+
+
 The service will be available at `http://localhost:8000`.
 
 ## API Endpoints
