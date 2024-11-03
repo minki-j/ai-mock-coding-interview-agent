@@ -2,19 +2,35 @@ import { useState } from "react";
 
 import CodeEditor from "@uiw/react-textarea-code-editor";
 
+
 const PythonEditor = () => {
-  const [code, setCode] = useState(`def function(name):
-  print(name)
+  const [code, setCode] = useState(`def greet(name):
+  print("Hello, " + name)
 
-function("hello world")`);
+greet("Minki")`);
+  const [testResults, setTestResults] = useState('');
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const executeCode = async () => {
+    setTestResults('Running code...');
+    try {
+      const response = await fetch('http://localhost:8000/execute-code', {
+        method: 'POST',
+      body: JSON.stringify({ code }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setTestResults(data.output);
+    } else {
+        setTestResults('Error executing code');
+      }
+    } catch (error) {
+      setTestResults(`Error: ${error.message}`);
+    }
   };
 
   return (
     <div>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2.5">
         <div className="border border-gray-200 rounded-lg">
           <CodeEditor
             value={code}
@@ -30,15 +46,15 @@ function("hello world")`);
           />
         </div>
         <button
-          type="submit"
+          onClick={executeCode}
           className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
         >
           Run
         </button>
-      </form>
+      </div>
       <div className="mt-8 border border-gray-200 rounded-lg p-5">
-        <h4 className="text-lg font-semibold mb-2">Output</h4>
-        <p id="output_content"></p>
+        <h4 className="text-lg font-semibold mb-2">Test Results</h4>
+        <div>{testResults}</div>
       </div>
     </div>
   );

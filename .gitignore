@@ -1,12 +1,9 @@
 .env
 .venv
 .DS_Store
-.sesskey
 __pycache__/
 .vscode/
-
 cache/
 data/
 testing/
 sketch_pad.ipynb
-node_modules/
