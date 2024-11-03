@@ -1,7 +1,7 @@
 from fasthtml.common import *
 
-from app.agents.main_graph import main_graph
-from app.views.components.chat_message import chat_message
+from agents.main_graph import main_graph
+from views.components.chat_message import chat_message
 
 async def chat(request, id: str):
     form_data = await request.form()

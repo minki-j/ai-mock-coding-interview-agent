@@ -6,10 +6,10 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import START, END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
 
-from app.agents.state_schema import OverallState, InputState, OutputState
+from agents.state_schema import OverallState, InputState, OutputState
 
-from app.agents.subgraphs.feedback_agent.graph import feedback_agent_graph
-from app.agents.subgraphs.thought_process.graph import thought_process_graph
+from agents.subgraphs.feedback_agent.graph import feedback_agent_graph
+from agents.subgraphs.thought_process.graph import thought_process_graph
 
 
 g = StateGraph(OverallState, input=InputState, output=OutputState)
@@ -42,5 +42,5 @@ memory = SqliteSaver(conn)
 
 main_graph = g.compile(checkpointer=memory, interrupt_before=["end_of_loop"])
 
-with open("./app/agents/graph_diagrams/main_graph.png", "wb") as f:
+with open("./agents/graph_diagrams/main_graph.png", "wb") as f:
     f.write(main_graph.get_graph(xray=10).draw_mermaid_png())

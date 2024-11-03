@@ -3,9 +3,9 @@ import uuid
 from datetime import datetime
 
 from fasthtml.common import *
-from app.views.components.error_responses import error_modal
+from views.components.error_responses import error_modal
 
-from app.agents.main_graph import main_graph
+from agents.main_graph import main_graph
 
 from db import db
 

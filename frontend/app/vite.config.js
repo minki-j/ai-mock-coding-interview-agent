@@ -16,6 +16,10 @@ export default defineConfig({
         target: backendUrl,
         changeOrigin: true,
       },
+      '/init_interview': {
+        target: backendUrl,
+        changeOrigin: true,
+      },
     },
   },
 })

@@ -6,7 +6,7 @@ from typing import Annotated, List, Literal
 from pydantic import BaseModel, Field
 from langgraph.graph.message import AnyMessage, add_messages
 
-from app.agents.subgraphs.thought_process.prompts import default_system_message
+from agents.subgraphs.thought_process.prompts import default_system_message
 
 INTERVIEW_TIME_IN_SECONDS = 60 # 45 minutes
 THOUGHT_TIME_IN_SECONDS = 10 # 10 minutes

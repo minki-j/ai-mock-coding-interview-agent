@@ -6,10 +6,10 @@ from langgraph.graph import START, END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from app.agents.state_schema import OverallState
+from agents.state_schema import OverallState
 
-from app.agents.llm_models import chat_model
-from app.agents.subgraphs.thought_process.prompts import default_system_message
+from agents.llm_models import chat_model
+from agents.subgraphs.thought_process.prompts import default_system_message
 
 
 def generate_thought_process(state: OverallState):

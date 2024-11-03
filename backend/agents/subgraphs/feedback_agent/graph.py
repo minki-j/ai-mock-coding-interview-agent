@@ -7,10 +7,10 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
-from app.agents.state_schema import OverallState
-from app.agents.llm_models import chat_model
+from agents.state_schema import OverallState
+from agents.llm_models import chat_model
 
-from app.agents.subgraphs.feedback_agent import prompts
+from agents.subgraphs.feedback_agent import prompts
 
 def generate_default_feedback(state: OverallState):
     print("\n>>> NODE: generate_default_feedback")
