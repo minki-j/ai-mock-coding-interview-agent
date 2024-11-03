@@ -3,15 +3,16 @@ import os
 import subprocess
 import tempfile
 import uuid
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from agents.main_graph import main_graph
-from db.schema import Interview, Message
+from db.schema import Interview
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from backend.db.mongo import find_many, find_one, insert_document
+from db.mongo import find_many, find_one, insert_document
 from pydantic import BaseModel
 from bson import ObjectId
+from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, AnyMessage
 
 app = FastAPI(title="Python Code Execution Service")
 
@@ -151,14 +152,13 @@ async def add_user(user: dict):
 
 
 @app.post("/init_interview")
-async def init_interview(interview_info: Interview):
-    # Insert interview document
-    interview_id = await insert_document("interviews", interview_info)
+async def init_interview(interview_info: dict):
+    interview_id = str(uuid.uuid4())
 
-    output = main_graph.invoke(
+    main_graph.invoke(
         input={
-            "interview_question": interview_info.interview_question,
-            "interview_solution": interview_info.interview_solution,
+            "interview_question": interview_info["interview_question"],
+            "interview_solution": interview_info["interview_solution"],
         },
         config={
             "configurable": {"thread_id": interview_id, "get_code_feedback": True},
@@ -169,33 +169,24 @@ async def init_interview(interview_info: Interview):
     return {"interview_id": str(interview_id)}
 
 
-@app.post("/chat", response_model=Message)
-async def chat(user_msg: Message):
+@app.post("/chat")
+async def chat(data: dict):
     config = {
-        "configurable": {"thread_id": user_msg.interview_id},
+        "configurable": {"thread_id": data["interview_id"], "get_code_feedback": True},
         "recursion_limit": 100,
     }
-
     main_graph.update_state(
         config,
-        {"messages": [{"role": "user", "content": user_msg.message}]},
+        {"messages": [HumanMessage(content=data["message"])]},
     )
     output = main_graph.invoke(None, config)
 
-    # Create and insert AI reply
-    reply = Message(
-        interview_id=user_msg.interview_id,
-        message=output.message_from_interviewer,
-        sent_time=datetime.datetime.now(),
-        sender="AI",
-    )
-
-    return reply.model_dump(exclude={"id"})
+    return output["message_from_interviewer"]
 
 
 class InterviewUIState(BaseModel):
     interview_question: str
-    messages: List[Message]
+    messages: List[Dict]
     code_editor_state: str
     test_result: str
 
@@ -206,9 +197,18 @@ async def get_interview(id: str):
 
     state = main_graph.get_state(config={"configurable": {"thread_id": id}}).values
 
+    messages = [
+        {
+            "message": msg.content,
+            "sentTime": "",
+            "sender": "AI" if isinstance(msg, AIMessage) else "User",
+        }
+        for msg in state["messages"][2:]
+    ]
+
     return InterviewUIState(
         interview_question=state["interview_question"],
-        messages=state["messages"],
+        messages=messages,
         code_editor_state=state["code_editor_state"],
         test_result=state["test_result"],
     )

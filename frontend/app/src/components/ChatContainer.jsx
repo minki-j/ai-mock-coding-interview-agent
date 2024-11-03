@@ -13,11 +13,11 @@ const ChatContainer = ({ messages, onSendMessage }) => {
   const messageListRef = useRef(null);
 
   return (
-    <MainContainer className="flex-1 px-4 py-2 bg-gray-700 shadow-md text-white rounded">
+    <MainContainer className="flex-1 px-4 py-2 bg-gray-700 text-white rounded border-0 border-none !border-0">
       <ChatUI className="flex-1">
-        <MessageList 
-          ref={messageListRef} 
-          style={{ maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' }}
+        <MessageList
+          ref={messageListRef}
+          style={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}
         >
           {messages.map((msg, index) => (
             <Message
@@ -43,7 +43,7 @@ const ChatContainer = ({ messages, onSendMessage }) => {
 ChatContainer.propTypes = {
   messages: PropTypes.arrayOf(PropTypes.shape({
     sender: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired
+    message: PropTypes.string.isRequired
   })).isRequired,
   onSendMessage: PropTypes.func.isRequired
 };

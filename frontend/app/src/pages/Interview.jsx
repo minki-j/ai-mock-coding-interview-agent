@@ -3,38 +3,17 @@ import { useParams } from "react-router-dom";
 import PythonEditor from "../components/PythonEditor";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import ChatContainer from "../components/ChatContainer";
-
-const initialMessages = [
-  {
-    message:
-      "Hello! I'll be your interviewer today. Let's work through a coding problem together.",
-    sentTime: "just now",
-    sender: "Interviewer",
-  },
-  {
-    message:
-      "Here's your coding question: Write a function that finds the longest substring without repeating characters in a given string.",
-    sentTime: "just now",
-    sender: "Interviewer",
-  },
-  {
-    message:
-      "Take your time to understand the problem. Let me know if you have any questions!",
-    sentTime: "just now",
-    sender: "Interviewer",
-  },
-];
-
 import messageSound from "../assets/sounds/message-pop-alert.mp3";
-
 
 const Interview = () => {
   const { id } = useParams();
-  const [messages, setMessages] = useState(initialMessages);
+  const [interviewQuestion, setInterviewQuestion] = useState("");
+  const [messages, setMessages] = useState([]);
   const [code, setCode] = useState(
     `def function(name):\n  print(name)\n\nfunction("hello world")`
   );
   const [testResults, setTestResults] = useState("");
+  const [isQuestionsVisible, setIsQuestionsVisible] = useState(true);
 
   const executeCode = async () => {
     setTestResults("Running code...");
@@ -42,20 +21,22 @@ const Interview = () => {
       const response = await fetch("/execute", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           code: code,
-          timeout: 5000
+          timeout: 5000,
         }),
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setTestResults(data.output || data.error || "No output");
       } else {
         const errorData = await response.json();
-        setTestResults(`Error: ${errorData.detail || "Failed to execute code"}`);
+        setTestResults(
+          `Error: ${errorData.detail || "Failed to execute code"}`
+        );
       }
     } catch (error) {
       setTestResults(`Error: ${error.message}`);
@@ -71,21 +52,18 @@ const Interview = () => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        setMessages(data.messages || initialMessages);
+        setMessages(data.messages || []);
         setCode(data.code_editor_state || code);
-        setTestResults(data.test_result || '');
+        setTestResults(data.test_result || "");
+        setInterviewQuestion(data.interview_question || "");
       } catch (error) {
         console.error("Error fetching interview:", error);
-        // Fallback to initial states if fetch fails
-        setMessages(initialMessages);
       }
     };
     fetchInterview();
   }, []);
 
   const handleSendMessage = async (message) => {
-    console.log("Sending message:", message);
-    // Add user message to chat
     const userMessage = {
       message: message,
       sentTime: new Date().toISOString(),
@@ -98,17 +76,15 @@ const Interview = () => {
       const response = await fetch("/chat", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(userMessage),
+        body: JSON.stringify({ message: message, interview_id: id }),
       });
-      
-      const responseData = await response.json(); // Parse the JSON response
-      
+      const message_from_interviewer = await response.json();
       const interviewerMessage = {
-        message: responseData.message,
-        sentTime: responseData.sentTime,
-        sender: responseData.sender,
+        message: message_from_interviewer,
+        sentTime: new Date().toISOString(),
+        sender: "AI",
       };
 
       // Use a timeout to ensure the sound plays after the message is added
@@ -132,16 +108,37 @@ const Interview = () => {
   return (
     <div className="container h-[calc(100vh-120px)] max-w-full">
       <div className="grid grid-cols-2 gap-2.5 h-full">
-        {/* Chat UI Kit Section */}
-        <div className="col-span-1 flex flex-col">
-          <ChatContainer
-            messages={messages}
-            onSendMessage={handleSendMessage}
-          />
+        {/* Left Column with Questions and Chat */}
+        <div className="col-span-1 flex flex-col gap-2.5">
+          {/* Interview Questions Section */}
+          <div className="flex-initial px-4 py-2 shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded">
+            <div
+              className="flex gap-2 items-center cursor-pointer"
+              onClick={() => setIsQuestionsVisible(!isQuestionsVisible)}
+            >
+              <span>{isQuestionsVisible ? "▼" : "▶"}</span>
+              <h2 className="font-semibold">Interview Questions</h2>
+            </div>
+            {isQuestionsVisible && (
+              <div className="mt-2">
+                <div className="text-gray-500">{interviewQuestion}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Chat UI Kit Section */}
+          <div className="flex-1 shadow-[0_0_15px_rgba(0,0,0,0.2)]">
+            <ChatContainer
+              messages={messages}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
         </div>
+
+        {/* Right Column - Code Editor (unchanged) */}
         <div className="col-span-1 flex flex-col gap-2.5 h-full">
           {/* Code Editor Section */}
-          <div className="rounded bg-white shadow-md p-5 flex-1">
+          <div className="rounded bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)] p-5 flex-1">
             <PythonEditor
               code={code}
               setCode={setCode}

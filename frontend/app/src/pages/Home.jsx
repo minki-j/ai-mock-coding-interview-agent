@@ -1,5 +1,4 @@
 import INTERVIEW_QUESTIONS from "../assets/interview_questions";
-import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 
 const Home = () => {
@@ -14,7 +13,6 @@ const Home = () => {
       body: JSON.stringify({
         interview_question: question.question,
         interview_solution: question.solution,
-        user_id: sessionStorage.getItem("userId"), 
       }),
     });
     if (response.ok) {
@@ -48,8 +46,5 @@ const Home = () => {
   );
 };
 
-Home.propTypes = {
-  handleStartInterview: PropTypes.func.isRequired,
-};
 
 export default Home;
