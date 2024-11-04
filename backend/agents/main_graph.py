@@ -15,17 +15,19 @@ from agents.subgraphs.thought_process.graph import thought_process_graph
 from agents.llm_models import chat_model
 
 
-class ClassifierResponse(BaseModel):
-    rationale: str = Field(description="The rationale for the decision.")
-    should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
+
 
 def check_if_thought_process_stage(state: OverallState) -> bool:
+    class ClassifierResponse(BaseModel):
+        rationale: str = Field(description="The rationale for the decision.")
+        should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
+
     print("\n>>> NODE: check_if_thought_process_stage")
     if not state.is_thought_process_stage:
         return n(feedback_agent_graph)
 
     chain = ChatPromptTemplate.from_template("""
-You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking about the problem. B) Actual interview stage: The candidate is writing code to solve the problem.
+You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual interview stage: The candidate is writing code to solve the problem.
 The candidate is currently in the thought process stage. You need to decide if the candidate has provided enough thought process for the problem and can move on to the actual interview stage.
 
 ----
@@ -35,7 +37,7 @@ Important rules:
 2. Criteria for enough thought process:
     - The candidate understood the problem correctly
     - The candidate has some ideas on how to solve the problem
-    - The candidate considered at least 2 different edge cases
+    - The candidate considered at least one edge case
 
 ----
 
@@ -49,6 +51,7 @@ Here is the current conversation:
         return n(thought_process_graph)
 
     return n(feedback_agent_graph)
+
 g = StateGraph(OverallState, input=InputState, output=OutputState)
 g.add_edge(START, n(check_if_thought_process_stage))
 
