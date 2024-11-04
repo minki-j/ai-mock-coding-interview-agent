@@ -1,0 +1,13 @@
+{
+  "content": "<p>Given a string <code>s</code> consisting of words and spaces, return <em>the length of the <strong>last</strong> word in the string.</em></p>\n\n<p>A <strong>word</strong> is a maximal <span data-keyword=\"substring-nonempty\">substring</span> consisting of non-space characters only.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n\n<pre>\n<strong>Input:</strong> s = &quot;Hello World&quot;\n<strong>Output:</strong> 5\n<strong>Explanation:</strong> The last word is &quot;World&quot; with length 5.\n</pre>\n\n<p><strong class=\"example\">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> s = &quot;   fly me   to   the moon  &quot;\n<strong>Output:</strong> 4\n<strong>Explanation:</strong> The last word is &quot;moon&quot; with length 4.\n</pre>\n\n<p><strong class=\"example\">Example 3:</strong></p>\n\n<pre>\n<strong>Input:</strong> s = &quot;luffy is still joyboy&quot;\n<strong>Output:</strong> 6\n<strong>Explanation:</strong> The last word is &quot;joyboy&quot; with length 6.\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>1 &lt;= s.length &lt;= 10<sup>4</sup></code></li>\n\t<li><code>s</code> consists of only English letters and spaces <code>&#39; &#39;</code>.</li>\n\t<li>There will be at least one word in <code>s</code>.</li>\n</ul>\n",
+  "difficulty": "Easy",
+  "title": "Length of Last Word",
+  "topicTags": [
+    {
+      "name": "String"
+    }
+  ],
+  "solution": {
+    "content": null
+  }
+}

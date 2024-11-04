@@ -1,0 +1,25 @@
+{
+  "content": "<p>Given a <code>rows x cols</code>&nbsp;binary <code>matrix</code> filled with <code>0</code>&#39;s and <code>1</code>&#39;s, find the largest rectangle containing only <code>1</code>&#39;s and return <em>its area</em>.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n<img alt=\"\" src=\"https://assets.leetcode.com/uploads/2020/09/14/maximal.jpg\" style=\"width: 402px; height: 322px;\" />\n<pre>\n<strong>Input:</strong> matrix = [[&quot;1&quot;,&quot;0&quot;,&quot;1&quot;,&quot;0&quot;,&quot;0&quot;],[&quot;1&quot;,&quot;0&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;],[&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;,&quot;1&quot;],[&quot;1&quot;,&quot;0&quot;,&quot;0&quot;,&quot;1&quot;,&quot;0&quot;]]\n<strong>Output:</strong> 6\n<strong>Explanation:</strong> The maximal rectangle is shown in the above picture.\n</pre>\n\n<p><strong class=\"example\">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> matrix = [[&quot;0&quot;]]\n<strong>Output:</strong> 0\n</pre>\n\n<p><strong class=\"example\">Example 3:</strong></p>\n\n<pre>\n<strong>Input:</strong> matrix = [[&quot;1&quot;]]\n<strong>Output:</strong> 1\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>rows == matrix.length</code></li>\n\t<li><code>cols == matrix[i].length</code></li>\n\t<li><code>1 &lt;= row, cols &lt;= 200</code></li>\n\t<li><code>matrix[i][j]</code> is <code>&#39;0&#39;</code> or <code>&#39;1&#39;</code>.</li>\n</ul>\n",
+  "difficulty": "Hard",
+  "title": "Maximal Rectangle",
+  "topicTags": [
+    {
+      "name": "Array"
+    },
+    {
+      "name": "Dynamic Programming"
+    },
+    {
+      "name": "Stack"
+    },
+    {
+      "name": "Matrix"
+    },
+    {
+      "name": "Monotonic Stack"
+    }
+  ],
+  "solution": {
+    "content": null
+  }
+}

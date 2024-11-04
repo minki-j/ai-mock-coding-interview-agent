@@ -1,0 +1,19 @@
+{
+  "content": "<p>Given a string containing just the characters <code>&#39;(&#39;</code> and <code>&#39;)&#39;</code>, return <em>the length of the longest valid (well-formed) parentheses </em><span data-keyword=\"substring-nonempty\"><em>substring</em></span>.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n\n<pre>\n<strong>Input:</strong> s = &quot;(()&quot;\n<strong>Output:</strong> 2\n<strong>Explanation:</strong> The longest valid parentheses substring is &quot;()&quot;.\n</pre>\n\n<p><strong class=\"example\">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> s = &quot;)()())&quot;\n<strong>Output:</strong> 4\n<strong>Explanation:</strong> The longest valid parentheses substring is &quot;()()&quot;.\n</pre>\n\n<p><strong class=\"example\">Example 3:</strong></p>\n\n<pre>\n<strong>Input:</strong> s = &quot;&quot;\n<strong>Output:</strong> 0\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>0 &lt;= s.length &lt;= 3 * 10<sup>4</sup></code></li>\n\t<li><code>s[i]</code> is <code>&#39;(&#39;</code>, or <code>&#39;)&#39;</code>.</li>\n</ul>\n",
+  "difficulty": "Hard",
+  "title": "Longest Valid Parentheses",
+  "topicTags": [
+    {
+      "name": "String"
+    },
+    {
+      "name": "Dynamic Programming"
+    },
+    {
+      "name": "Stack"
+    }
+  ],
+  "solution": {
+    "content": null
+  }
+}

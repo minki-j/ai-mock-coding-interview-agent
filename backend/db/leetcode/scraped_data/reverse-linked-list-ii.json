@@ -1,0 +1,13 @@
+{
+  "content": "<p>Given the <code>head</code> of a singly linked list and two integers <code>left</code> and <code>right</code> where <code>left &lt;= right</code>, reverse the nodes of the list from position <code>left</code> to position <code>right</code>, and return <em>the reversed list</em>.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n<img alt=\"\" src=\"https://assets.leetcode.com/uploads/2021/02/19/rev2ex2.jpg\" style=\"width: 542px; height: 222px;\" />\n<pre>\n<strong>Input:</strong> head = [1,2,3,4,5], left = 2, right = 4\n<strong>Output:</strong> [1,4,3,2,5]\n</pre>\n\n<p><strong class=\"example\">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> head = [5], left = 1, right = 1\n<strong>Output:</strong> [5]\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li>The number of nodes in the list is <code>n</code>.</li>\n\t<li><code>1 &lt;= n &lt;= 500</code></li>\n\t<li><code>-500 &lt;= Node.val &lt;= 500</code></li>\n\t<li><code>1 &lt;= left &lt;= right &lt;= n</code></li>\n</ul>\n\n<p>&nbsp;</p>\n<strong>Follow up:</strong> Could you do it in one pass?",
+  "difficulty": "Medium",
+  "title": "Reverse Linked List II",
+  "topicTags": [
+    {
+      "name": "Linked List"
+    }
+  ],
+  "solution": {
+    "content": null
+  }
+}
