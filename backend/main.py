@@ -214,6 +214,22 @@ async def get_interview(id: str):
     )
 
 
+@app.get("/get_interview_questions")
+async def get_interview_questions():
+    import json
+    from pathlib import Path
+
+    scraped_data_path = Path("db/leetcode/scraped_data")
+    questions = []
+    
+    for file_path in scraped_data_path.glob("*.json"):
+        with open(file_path, "r") as f:
+            data = json.load(f)
+            questions.append(data)
+    
+    return questions
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
