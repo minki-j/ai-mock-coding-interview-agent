@@ -49,9 +49,8 @@ docker-compose up --build
 brew tap mongodb/brew
 brew install mongodb-community
 
-brew services start mongodb-community
+sudo brew services start mongodb-community
 ```
-
 
 The service will be available at `http://localhost:8000`.
 

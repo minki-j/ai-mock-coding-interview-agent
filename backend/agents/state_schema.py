@@ -35,8 +35,7 @@ class OutputState(BaseModel):
 class OverallState(InputState, OutputState):
     start_time: datetime.datetime = Field(default=datetime.datetime.now())
 
-    def is_thought_process_stage(self):
-        return len(self.messages) > 20 or (datetime.datetime.now() - self.start_time).total_seconds() <= THOUGHT_TIME_IN_MINUTES * 60
+    is_thought_process_stage: bool = Field(default=True)
 
     test_result: str = Field(default="")
     #TODO: evolution of the code and test result. 
