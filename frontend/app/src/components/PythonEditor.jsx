@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import CodeEditor from "@uiw/react-textarea-code-editor";
 
-const PythonEditor = ({ code, setCode, testResult, executeCode }) => {
+const PythonEditor = ({ code, setCode, executeCode }) => {
   return (
     <div>
       <div className="flex flex-col gap-2.5">
@@ -26,10 +26,7 @@ const PythonEditor = ({ code, setCode, testResult, executeCode }) => {
           Run
         </button>
       </div>
-      <div className="mt-8 border border-gray-200 rounded-lg p-5">
-        <h4 className="text-lg font-semibold mb-2">Test Results</h4>
-        <div>{testResult}</div>
-      </div>
+      
     </div>
   );
 };

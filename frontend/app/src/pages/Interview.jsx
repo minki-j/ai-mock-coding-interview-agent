@@ -10,11 +10,13 @@ const Interview = () => {
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [code, setCode] = useState("");
-  const [testResults, setTestResults] = useState("");
+  const [testResult, setTestResult] = useState("Once you run the code, you will see the results here.");
   const [isQuestionsVisible, setIsQuestionsVisible] = useState(true);
+  const [isEditorVisible, setIsEditorVisible] = useState(true);
+  const [isResultsVisible, setIsResultsVisible] = useState(true);
 
   const executeCode = async () => {
-    setTestResults("Running code...");
+    setTestResult("Running code...");
     try {
       const response = await fetch("/execute", {
         method: "POST",
@@ -29,15 +31,15 @@ const Interview = () => {
 
       if (response.ok) {
         const data = await response.json();
-        setTestResults(data.output || data.error || "No output");
+        setTestResult(data.output || data.error || "No output");
       } else {
         const errorData = await response.json();
-        setTestResults(
+        setTestResult(
           `Error: ${errorData.detail || "Failed to execute code"}`
         );
       }
     } catch (error) {
-      setTestResults(`Error: ${error.message}`);
+      setTestResult(`Error: ${error.message}`);
     }
   };
 
@@ -52,7 +54,9 @@ const Interview = () => {
         const data = await res.json();
         setMessages(data.messages || []);
         setCode(data.code_editor_state || code);
-        setTestResults(data.test_result || "");
+        if (data.test_result) {
+          setTestResult(data.test_result);
+        }
         setInterviewQuestion(data.interview_question || "");
       } catch (error) {
         console.error("Error fetching interview:", error);
@@ -119,7 +123,7 @@ const Interview = () => {
               onClick={() => setIsQuestionsVisible(!isQuestionsVisible)}
             >
               <span>{isQuestionsVisible ? "▼" : "▶"}</span>
-              <h2 className="font-semibold">Interview Questions</h2>
+              <h2 className="font-semibold">Interview Question</h2>
             </div>
             {isQuestionsVisible && (
               <div className="mt-2">
@@ -132,7 +136,7 @@ const Interview = () => {
           </div>
 
           {/* Chat UI Kit Section */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto">
             <ChatContainer
               messages={messages}
               onSendMessage={handleSendMessage}
@@ -143,13 +147,34 @@ const Interview = () => {
         {/* Right Column - Code Editor (unchanged) */}
         <div className="col-span-1 flex flex-col gap-2.5 h-full">
           {/* Code Editor Section */}
-          <div className="rounded bg-white border border-gray-100 shadow-inner p-5 flex-1">
-            <PythonEditor
-              code={code}
-              setCode={setCode}
-              testResult={testResults}
-              executeCode={executeCode}
-            />
+          <div className={`rounded bg-white border border-gray-100 shadow-inner p-5 flex-1 ${isEditorVisible ? 'h-[432px]' : 'h-[40px]'}`}>
+            <div
+              className="flex gap-2 items-center cursor-pointer"
+              onClick={() => setIsEditorVisible(!isEditorVisible)}
+            >
+              <span>{isEditorVisible ? "▼" : "▶"}</span>
+              <h2 className="font-semibold">Code Editor</h2>
+            </div>
+            {isEditorVisible && (
+              <PythonEditor
+                code={code}
+                setCode={setCode}
+                testResult={testResult}
+                executeCode={executeCode}
+              />
+            )}
+          </div>
+          <div className={`mt-8 border border-gray-200 rounded-lg p-5 ${isResultsVisible ? 'h-[200px]' : 'h-[40px]'}`}>
+            <div
+              className="flex gap-2 items-center cursor-pointer"
+              onClick={() => setIsResultsVisible(!isResultsVisible)}
+            >
+              <span>{isResultsVisible ? "▼" : "▶"}</span>
+              <h2 className="font-semibold">Test Results</h2>
+            </div>
+            {isResultsVisible && (
+              <div className="mt-2">{testResult}</div>
+            )}
           </div>
           {/* Submit Button Section */}
           <div className="flex gap-2.5 w-full">
