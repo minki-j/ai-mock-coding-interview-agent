@@ -221,12 +221,14 @@ async def get_interview_questions():
 
     scraped_data_path = Path("db/leetcode/scraped_data")
     questions = []
-    
+
     for file_path in scraped_data_path.glob("*.json"):
         with open(file_path, "r") as f:
             data = json.load(f)
-            questions.append(data)
-    
+            # only return questions that have a solution
+            if data["solution"]["content"]:
+                questions.append(data)
+
     return questions
 
 

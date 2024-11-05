@@ -9,9 +9,7 @@ const Interview = () => {
   const { id } = useParams();
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
-  const [code, setCode] = useState(
-    `def function(name):\n  print(name)\n\nfunction("hello world")`
-  );
+  const [code, setCode] = useState("");
   const [testResults, setTestResults] = useState("");
   const [isQuestionsVisible, setIsQuestionsVisible] = useState(true);
 
@@ -109,9 +107,13 @@ const Interview = () => {
     <div className="container h-[calc(100vh-120px)] max-w-full">
       <div className="grid grid-cols-2 gap-2.5 h-full">
         {/* Left Column with Questions and Chat */}
-        <div className="col-span-1 flex flex-col gap-2.5">
+        <div className="col-span-1 flex flex-col gap-2.5 h-full overflow-hidden">
           {/* Interview Questions Section */}
-          <div className="flex-initial px-4 py-2 shadow-[0_0_15px_rgba(0,0,0,0.2)] rounded">
+          <div
+            className={`flex-initial px-4 py-2 bg-white border border-gray-100 rounded-lg shadow-inner ${
+              isQuestionsVisible ? "h-[432px]" : "h-[40px]"
+            }`}
+          >
             <div
               className="flex gap-2 items-center cursor-pointer"
               onClick={() => setIsQuestionsVisible(!isQuestionsVisible)}
@@ -121,13 +123,16 @@ const Interview = () => {
             </div>
             {isQuestionsVisible && (
               <div className="mt-2">
-                <div className="text-gray-500">{interviewQuestion}</div>
+                <div
+                  className="h-[370px] overflow-y-auto prose prose-sm max-w-none pb-4"
+                  dangerouslySetInnerHTML={{ __html: interviewQuestion }}
+                ></div>
               </div>
             )}
           </div>
 
           {/* Chat UI Kit Section */}
-          <div className="flex-1 shadow-[0_0_15px_rgba(0,0,0,0.2)]">
+          <div className="flex-1">
             <ChatContainer
               messages={messages}
               onSendMessage={handleSendMessage}
@@ -138,7 +143,7 @@ const Interview = () => {
         {/* Right Column - Code Editor (unchanged) */}
         <div className="col-span-1 flex flex-col gap-2.5 h-full">
           {/* Code Editor Section */}
-          <div className="rounded bg-white shadow-[0_0_15px_rgba(0,0,0,0.2)] p-5 flex-1">
+          <div className="rounded bg-white border border-gray-100 shadow-inner p-5 flex-1">
             <PythonEditor
               code={code}
               setCode={setCode}

@@ -9,6 +9,8 @@ const Home = () => {
   const [selectedTopic, setSelectedTopic] = useState('');
   const [allTopics, setAllTopics] = useState([]);
 
+  const [isNavigating, setIsNavigating] = useState(false);
+
   useEffect(() => {
     const fetchInterviews = async () => {
       try {
@@ -37,19 +39,25 @@ const Home = () => {
   });
 
   const handleStartInterview = async (question) => {
-    const response = await fetch("/init_interview", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        interview_question: question.question,
-        interview_solution: question.solution,
-      }),
-    });
-    if (response.ok) {
-      const data = await response.json();
-      navigate(`/interview/${data.interview_id}`);
+    setIsNavigating(true);
+    try {
+      const response = await fetch("/init_interview", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          interview_question: question.content,
+          interview_solution: question.solution.content,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        navigate(`/interview/${data.interview_id}`);
+      }
+    } catch (error) {
+      console.error("Error initializing interview:", error);
+      setIsNavigating(false);
     }
   };
   return (
@@ -122,17 +130,45 @@ const Home = () => {
               </div>
               <button
                 onClick={() => handleStartInterview(question)}
-                className="p-2 text-blue-500 hover:text-blue-600 transition-colors rounded-full border-2 border-blue-500 hover:bg-blue-500 hover:text-white"
+                disabled={isNavigating}
+                className={`p-2 rounded-full border-2 transition-colors ${
+                  isNavigating
+                    ? 'border-gray-300 text-gray-300 cursor-not-allowed'
+                    : 'border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white'
+                }`}
                 title="Start Interview"
               >
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor" 
-                  className="w-6 h-6"
-                >
-                  <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
-                </svg>
+                {isNavigating ? (
+                  <svg 
+                    className="w-6 h-6 animate-spin" 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24"
+                  >
+                    <circle 
+                      className="opacity-25" 
+                      cx="12" 
+                      cy="12" 
+                      r="10" 
+                      stroke="currentColor" 
+                      strokeWidth="4"
+                    ></circle>
+                    <path 
+                      className="opacity-75" 
+                      fill="currentColor" 
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                ) : (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    viewBox="0 0 24 24" 
+                    fill="currentColor" 
+                    className="w-6 h-6"
+                  >
+                    <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 0 1 0 1.972l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
+                  </svg>
+                )}
               </button>
             </div>
           </div>
