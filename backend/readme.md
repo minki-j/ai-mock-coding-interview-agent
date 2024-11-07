@@ -26,7 +26,7 @@ cd backend
 docker-compose up --build
 ```
 
-### Option 2. 
+### Option 2.
 
 Start FastAPI server
 ```bash
@@ -34,7 +34,7 @@ cd backend
 python main.py
 ```
 
-Start MongoDB server
+Start MongoDB server (macOS)
 ```bash
 brew tap mongodb/brew
 brew install mongodb-community

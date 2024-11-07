@@ -4,10 +4,11 @@ services:
       context: ./backend
     ports:
       - "8000:8000"
-    environment:
-      - MONGO_URL=mongodb://mongodb:27017
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend:/code
+      - fastapi_data:/code/data
     restart: unless-stopped
     security_opt:
       - seccomp=unconfined
@@ -36,9 +37,28 @@ services:
       retries: 3
       start_period: 3m
     environment:
-      - MONGODB_INITDB_ROOT_USERNAME=root
-      - MONGODB_INITDB_ROOT_PASSWORD=example
       - MONGODB_LOG_VERBOSITY=0
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend/:/app
+      - /app/node_modules
+    environment:
+      - DOCKER_ENV=true
+    env_file:
+      - ./frontend/.env
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
 volumes:
   mongodb_data:
+  fastapi_data:
