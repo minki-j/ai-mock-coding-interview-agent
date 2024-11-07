@@ -6,7 +6,7 @@ services:
       - "8000:8000"
     environment:
       - MONGO_URL=mongodb://mongodb:27017
-    volumes:
+      - ANTHROPIC_API_KEY=
       - ./backend:/code
     restart: unless-stopped
     security_opt:
@@ -39,6 +39,24 @@ services:
       - MONGODB_INITDB_ROOT_USERNAME=root
       - MONGODB_INITDB_ROOT_PASSWORD=example
       - MONGODB_LOG_VERBOSITY=0
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./frontend/:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
 
 volumes:
   mongodb_data:
