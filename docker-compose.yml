@@ -1,5 +1,5 @@
 services:
-  code-execution:
+  fastapi:
     build:
       context: ./backend
     ports:
@@ -9,9 +9,6 @@ services:
     volumes:
       - ./backend:/code
     restart: unless-stopped
-    # depends_on:
-    #   mongodb:
-    #     condition: service_healthy
     security_opt:
       - seccomp=unconfined
     deploy:
