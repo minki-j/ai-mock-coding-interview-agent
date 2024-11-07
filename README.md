@@ -2,7 +2,7 @@
 
 ## Running on Docker
 
-Before you run the docker compose file, you need to set the ANTHROPIC_API_KEY environment variable. You can get it from [here](https://console.anthropic.com/keys). If you prefer OpenAI, you can set the OPENAI_API_KEY environment variable.
+Before you run the docker compose file, you **MUST** set the ANTHROPIC_API_KEY environment variable in the docker compose file. You can get it from [here](https://console.anthropic.com/keys). If you prefer OpenAI, you can set the OPENAI_API_KEY environment variable in the docker compose file.
 
 ## Running on Local Machine
 
