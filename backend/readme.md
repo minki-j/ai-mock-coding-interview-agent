@@ -20,31 +20,21 @@ A FastAPI-based service that executes Python code securely within a Docker conta
 
 ## Installation
 
-1. Clone or create the project directory:
-
+### Option 1. Using Docker
 ```bash
-mkdir python-execution-service
-cd python-execution-service
-```
-
-2. Create the following directory structure:
-
-```
-python-execution-service/
-├── app/
-│   └── main.py
-├── requirements.txt
-├── Dockerfile
-└── docker-compose.yml
-```
-
-3. Build and start the service:
-
-```bash
+cd backend
 docker-compose up --build
 ```
 
-4. Install and run MongoDB server locally
+### Option 2. 
+
+Start FastAPI server
+```bash
+cd backend
+python main.py
+```
+
+Start MongoDB server
 ```bash
 brew tap mongodb/brew
 brew install mongodb-community
