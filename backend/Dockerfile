@@ -11,5 +11,6 @@ COPY ./db /code/db
 COPY ./agents /code/agents
 COPY ./main.py /code/main.py
 
+
 # Command to run the application
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

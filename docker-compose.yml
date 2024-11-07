@@ -4,10 +4,11 @@ services:
       context: ./backend
     ports:
       - "8000:8000"
-    environment:
-      - MONGO_URL=mongodb://mongodb:27017
-      - ANTHROPIC_API_KEY=
+    env_file:
+      - ./backend/.env
+    volumes:
       - ./backend:/code
+      - fastapi_data:/code/data
     restart: unless-stopped
     security_opt:
       - seccomp=unconfined
@@ -36,8 +37,6 @@ services:
       retries: 3
       start_period: 3m
     environment:
-      - MONGODB_INITDB_ROOT_USERNAME=root
-      - MONGODB_INITDB_ROOT_PASSWORD=example
       - MONGODB_LOG_VERBOSITY=0
 
   frontend:
@@ -50,7 +49,9 @@ services:
       - ./frontend/:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - DOCKER_ENV=true
+    env_file:
+      - ./frontend/.env
     restart: unless-stopped
     deploy:
       resources:
@@ -60,3 +61,4 @@ services:
 
 volumes:
   mongodb_data:
+  fastapi_data:

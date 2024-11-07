@@ -2,9 +2,7 @@
 
 ## Running on Docker
 
-Before you run the docker compose file, you **MUST** set the ANTHROPIC_API_KEY environment variable in the docker compose file. You can get it from [here](https://console.anthropic.com/keys). If you prefer OpenAI, you can set the OPENAI_API_KEY environment variable in the docker compose file.
-
-## Running on Local Machine
+Before you run the docker compose file, please fill in the environment variable in backend/.env file.
 
 After you have the environment variables set, you can run the docker compose file.
 
@@ -26,10 +24,10 @@ or `Ctrl + C` in the terminal where docker compose is running.
 I have encountered an issue that frontend is telling me that `jwt-decode` is not found. However, it is installed. I have no idea why it is not being detected. So for now, you can run `npm install jwt-decode` to fix the issue.
 
 ```bash
-docker compose exec ai-mock-coding-interview-agent-frontend-1 npm install jwt-decode
+docker compose exec frontend npm install jwt-decode
 ```
 
-`ai-mock-coding-interview-agent-frontend-1` is the name of the service in the docker compose file.
+`frontend` is the name of the service in the docker compose file.
 
 ## Accessing the App
 

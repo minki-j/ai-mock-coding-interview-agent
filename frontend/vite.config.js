@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const backendUrl = "http://localhost:8000";
+const running_on_docker = process.env.DOCKER_ENV === 'true';
+const backendUrl = running_on_docker ? "http://fastapi:8000" : "http://localhost:8000";
 
 // https://vite.dev/config/
 export default defineConfig({
