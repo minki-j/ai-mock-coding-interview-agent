@@ -92,8 +92,11 @@ Important: Only return the amended reply, nothing else such as "Here is the amen
 g = StateGraph(OverallState)
 g.add_edge(START, n(is_first_message))
 
+g.add_node(n(is_first_message), RunnablePassthrough())
 g.add_conditional_edges(
-    n(is_first_message), is_first_message, [(n(greeting), n(thought_process))]
+    n(is_first_message),
+    is_first_message,
+    [n(greeting), n(thought_process)],
 )
 
 g.add_node(greeting)
