@@ -47,6 +47,7 @@ const Home = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          interviewee_name: sessionStorage.getItem("userName"),
           interview_question: question.content,
           interview_solution: question.solution.content,
         }),
