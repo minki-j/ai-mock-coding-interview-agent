@@ -23,7 +23,7 @@ def check_if_thought_process_stage(state: OverallState) -> bool:
         should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
 
     print("\n>>> NODE: check_if_thought_process_stage")
-    if not state.is_thought_process_stage:
+    if state.stage != "thought_process" and state.stage != "greeting":
         return n(feedback_agent_graph)
 
     chain = ChatPromptTemplate.from_template("""

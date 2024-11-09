@@ -203,7 +203,7 @@ async def get_interview(id: str):
             "sentTime": "",
             "sender": "AI" if isinstance(msg, AIMessage) else "User",
         }
-        for msg in state["messages"][2:]
+        for msg in state["messages"][1:]
     ]
 
     return InterviewUIState(

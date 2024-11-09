@@ -36,6 +36,7 @@ class OutputState(BaseModel):
 class OverallState(InputState, OutputState):
     start_time: datetime.datetime = Field(default=datetime.datetime.now())
 
+    greeting_msg_index: int = Field(default=0)
     stage: Literal["greeting", "thought_process", "coding"] = Field(default="greeting")
 
     test_result: str = Field(default="")

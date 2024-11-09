@@ -31,6 +31,8 @@ const Login = () => {
     sessionStorage.setItem("userId", data.id);
     if (res.ok) {
       navigate("/");
+    } else {
+      console.error("Failed to add user");
     }
   };
 
