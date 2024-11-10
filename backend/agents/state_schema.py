@@ -8,8 +8,8 @@ from langgraph.graph.message import AnyMessage, add_messages
 
 from agents.subgraphs.thought_process.prompts import default_system_message
 
-INTERVIEW_TIME_IN_MINUTES = 60 # 45 minutes
-THOUGHT_TIME_IN_MINUTES = 10 # 10 minutes
+INTERVIEW_TIME_IN_MINUTES = 60  # 45 minutes
+THOUGHT_TIME_IN_MINUTES = 10  # 10 minutes
 
 # ===========================================
 #                VARIABLE SCHEMA
@@ -30,16 +30,21 @@ class InputState(BaseModel):
     interview_question: str = Field(default="")
     interview_solution: str = Field(default="")
 
+
 class OutputState(BaseModel):
     message_from_interviewer: str = Field(default="")
 
+
 class OverallState(InputState, OutputState):
     greeting_msg_index: int = Field(default=0)
-    stage: Literal["greeting", "thought_process", "coding"] = Field(default="greeting")
+    stage: Literal["greeting", "thought_process", "coding", "assessment"] = Field(
+        default="greeting"
+    )
 
-    test_result: str = Field(default="")
-    #TODO: evolution of the code and test result. 
+    # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")
+    test_result: str = Field(default="")
 
-    messages: Annotated[list[AnyMessage], add_messages] = Field(default_factory=lambda: [default_system_message]) #! Default messages is not working
-
+    messages: Annotated[list[AnyMessage], add_messages] = Field(
+        default_factory=lambda: [default_system_message]
+    )  #! Default messages is not working

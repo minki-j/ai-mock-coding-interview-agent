@@ -31,8 +31,8 @@ def thought_process(state: OverallState):
     }
 
 
-def is_first_message(state: OverallState):
-    print("\n>>> CONDITIONAL EDGE: is_first_message")
+def is_greeting_finished(state: OverallState):
+    print("\n>>> CONDITIONAL EDGE: is_greeting_finished")
     if state.stage == "greeting":
         return n(greeting)
     else:
@@ -58,25 +58,29 @@ def greeting(state: OverallState):
         }
     else:
         class ContextualizedGreetingMessage(BaseModel):
+            rationale: str = Field(description="The rationale for the decision.")
             should_use_predefined_reply: bool = Field(description="Return True if the predefined reply fits in the conversation. Otherwise, return False.")
             amended_predefined_reply: str = Field(description="Return the amended predefined reply if should_use_predefined_reply is True. Otherwise, return an empty string.")
+            free_reply: str = Field(description="Return the free reply if should_use_predefined_reply is False. Otherwise, return an empty string.")
 
         chain = (
             ChatPromptTemplate.from_template(
                 """
-You just started interviewing a candidate for a software engineering role. You have two options
-
-Option 1. Use the predefined reply.
+You just started interviewing a candidate for a software engineering role. You have two options:
+## Option 1. Use the predefined reply.
 If the conversation flows as expected so that the predefined reply fits in the conversation, you can use it. However, the predefined reply may miss some reactions or tones. You can amend it to fit in the conversation.
-
-Option 2. Ignore the predefined reply and reply freely.
+## Option 2. Ignore the predefined reply and reply freely.
 Sometimes the interviewee might ask a question that is not covered in the predefined reply. Or the conversation might go in a different direction. In that case, you should ignore the predefined reply and reply freely. However, if the conversation is derailed too much, you should gently guide the conversation back to the predefined reply.
 
 ---
 
-predefined_reply: {predefined_reply}
+## predefined_reply
+{predefined_reply}
 
-conversation: {conversation}"""
+---
+
+## conversation
+{conversation}"""
             )
             | chat_model.with_structured_output(ContextualizedGreetingMessage)
         )
@@ -85,26 +89,34 @@ conversation: {conversation}"""
             [f"{message.type}: {message.content}" for message in state.messages[1:]]
         )
 
-        greeting_msg = chain.invoke(
+        response = chain.invoke(
             {
-                "predefined_replies": greeting_messages[state.greeting_msg_index],
+                "predefined_reply": greeting_messages[state.greeting_msg_index],
                 "conversation": stringified_messages,
             }
         )
 
+        if response.should_use_predefined_reply:
+            greeting_msg = response.amended_predefined_reply
+            greeting_msg_index = state.greeting_msg_index + 1
+        else:
+            greeting_msg = response.free_reply
+            greeting_msg_index = state.greeting_msg_index
+
         return {
             "message_from_interviewer": greeting_msg,
             "messages": [AIMessage(content=greeting_msg)],
+            "greeting_msg_index": greeting_msg_index,
         }
 
 
 g = StateGraph(OverallState)
-g.add_edge(START, n(is_first_message))
+g.add_edge(START, n(is_greeting_finished))
 
-g.add_node(n(is_first_message), RunnablePassthrough())
+g.add_node(n(is_greeting_finished), RunnablePassthrough())
 g.add_conditional_edges(
-    n(is_first_message),
-    is_first_message,
+    n(is_greeting_finished),
+    is_greeting_finished,
     [n(greeting), n(thought_process)],
 )
 

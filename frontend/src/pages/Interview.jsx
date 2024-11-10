@@ -10,7 +10,9 @@ const Interview = () => {
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [code, setCode] = useState("");
-  const [testResult, setTestResult] = useState("Once you run the code, you will see the results here.");
+  const [testResult, setTestResult] = useState(
+    "Once you run the code, you will see the results here."
+  );
   const [isQuestionsVisible, setIsQuestionsVisible] = useState(true);
   const [isEditorVisible, setIsEditorVisible] = useState(true);
   const [isResultsVisible, setIsResultsVisible] = useState(true);
@@ -34,9 +36,7 @@ const Interview = () => {
         setTestResult(data.output || data.error || "No output");
       } else {
         const errorData = await response.json();
-        setTestResult(
-          `Error: ${errorData.detail || "Failed to execute code"}`
-        );
+        setTestResult(`Error: ${errorData.detail || "Failed to execute code"}`);
       }
     } catch (error) {
       setTestResult(`Error: ${error.message}`);
@@ -80,7 +80,12 @@ const Interview = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: message, interview_id: id }),
+        body: JSON.stringify({
+          message: message,
+          interview_id: id,
+          code_editor_state: code,
+          test_result: testResult,
+        }),
       });
       const message_from_interviewer = await response.json();
       const interviewerMessage = {
@@ -147,7 +152,11 @@ const Interview = () => {
         {/* Right Column - Code Editor (unchanged) */}
         <div className="col-span-1 flex flex-col gap-2.5 h-full">
           {/* Code Editor Section */}
-          <div className={`rounded bg-white border border-gray-100 shadow-inner p-5 flex-1 ${isEditorVisible ? 'h-[432px]' : 'h-[40px]'}`}>
+          <div
+            className={`rounded bg-white border border-gray-100 shadow-inner p-5 flex-1 ${
+              isEditorVisible ? "h-[432px]" : "h-[40px]"
+            }`}
+          >
             <div
               className="flex gap-2 items-center cursor-pointer"
               onClick={() => setIsEditorVisible(!isEditorVisible)}
@@ -164,7 +173,11 @@ const Interview = () => {
               />
             )}
           </div>
-          <div className={`mt-8 border border-gray-200 rounded-lg p-5 ${isResultsVisible ? 'h-[200px]' : 'h-[40px]'}`}>
+          <div
+            className={`mt-8 border border-gray-200 rounded-lg p-5 ${
+              isResultsVisible ? "h-[200px]" : "h-[40px]"
+            }`}
+          >
             <div
               className="flex gap-2 items-center cursor-pointer"
               onClick={() => setIsResultsVisible(!isResultsVisible)}
@@ -172,9 +185,7 @@ const Interview = () => {
               <span>{isResultsVisible ? "▼" : "▶"}</span>
               <h2 className="font-semibold">Test Results</h2>
             </div>
-            {isResultsVisible && (
-              <div className="mt-2">{testResult}</div>
-            )}
+            {isResultsVisible && <div className="mt-2">{testResult}</div>}
           </div>
           {/* Submit Button Section */}
           <div className="flex gap-2.5 w-full">

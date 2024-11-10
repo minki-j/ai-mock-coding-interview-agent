@@ -13,9 +13,9 @@ const History = () => {
       navigate("/login");
     }
     const fetchHistory = async () => {
-      const res = await fetch(`/get_all_interviews/${user_id}`);
+      const res = await fetch(`/get_history/${user_id}`);
       const data = await res.json();
-      console.log("get_all_interviews: ", data);
+      console.log("get_history: ", data);
       setInterviews(data);
     };
     fetchHistory();
@@ -30,7 +30,7 @@ const History = () => {
         "Are you sure you want to delete all interviews? This action cannot be undone."
       )
     ) {
-      const res = await fetch(`/delete_all_interviews/${user_id}`, {
+      const res = await fetch(`/delete_all_history/${user_id}`, {
         method: "DELETE",
       });
 
@@ -58,7 +58,7 @@ const History = () => {
         <p>No interviews found</p>
       ) : (
         <ul className="space-y-4">
-          {interviews.map((interview) => (
+          {[...interviews].reverse().map((interview) => (
             <li
               key={interview.id}
               className="border p-4 rounded-lg hover:bg-gray-50 cursor-pointer"

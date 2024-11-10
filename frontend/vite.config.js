@@ -29,11 +29,11 @@ export default defineConfig({
         target: backendUrl,
         changeOrigin: true,
       },
-      "/get_all_interviews": {
+      "/get_history": {
         target: backendUrl,
         changeOrigin: true,
       },
-      "/delete_all_interviews": {
+      "/delete_all_history": {
         target: backendUrl,
         changeOrigin: true,
       },
