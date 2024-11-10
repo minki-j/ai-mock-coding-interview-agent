@@ -9,7 +9,7 @@ from agents.main_graph import main_graph
 from db.schema import Interview
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from db.mongo import find_many, find_one, insert_document
+from db.mongo import find_many, find_one, insert_document, delete_many
 from pydantic import BaseModel
 from bson import ObjectId
 from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, AnyMessage
@@ -153,7 +153,11 @@ async def add_user(user: dict):
 
 @app.post("/init_interview")
 async def init_interview(interview_info: dict):
-    interview_id = str(uuid.uuid4())
+    print(f"==>> init_interview with user_id: {interview_info['user_id']}")
+    user_id = ObjectId(interview_info["user_id"])
+    interview_id = await insert_document("interviews", {
+        "user_id": user_id,
+    })
 
     main_graph.invoke(
         input={
@@ -193,8 +197,6 @@ class InterviewUIState(BaseModel):
 
 @app.get("/get_interview/{id}")
 async def get_interview(id: str):
-    print("getting interview with id", id)
-
     state = main_graph.get_state(config={"configurable": {"thread_id": id}}).values
 
     messages = [
@@ -203,7 +205,7 @@ async def get_interview(id: str):
             "sentTime": "",
             "sender": "AI" if isinstance(msg, AIMessage) else "User",
         }
-        for msg in state["messages"][2:]
+        for msg in state["messages"][1:]
     ]
 
     return InterviewUIState(
@@ -231,6 +233,32 @@ async def get_interview_questions():
 
     return questions
 
+
+@app.get("/get_all_interviews/{user_id}")
+async def get_all_interviews(user_id: str):
+    print(f"==>> get_all_interviews with user_id: {user_id}")
+    interview_ids = await find_many("interviews", {"user_id": ObjectId(user_id)})
+    interview_ids = [str(interview_id["_id"]) for interview_id in interview_ids]
+    print(f"==>> interview_ids: {interview_ids}")
+    interviews = []
+    for interview_id in interview_ids:
+        state = main_graph.get_state(
+            config={"configurable": {"thread_id": interview_id}}
+        ).values
+
+        interview = {}
+        interview["id"] = interview_id
+        interview["title"] = state["interview_question"][:500]
+        interview["last_visited"] = "TO be implemented"
+
+        interviews.append(interview)
+    return interviews
+
+
+@app.delete("/delete_all_interviews/{user_id}")
+async def delete_all_interviews(user_id: str):
+    await delete_many("interviews", {"user_id": ObjectId(user_id)})
+    return {"status": "success"}
 
 @app.get("/health")
 async def health_check():

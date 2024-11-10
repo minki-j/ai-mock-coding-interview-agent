@@ -25,6 +25,7 @@ THOUGHT_TIME_IN_MINUTES = 10 # 10 minutes
 #                    STATE
 # ===========================================
 class InputState(BaseModel):
+    interviewee_name: str = Field(default="")
     difficulty_level: Literal["easy", "medium", "hard"] = Field(default="easy")
     interview_question: str = Field(default="")
     interview_solution: str = Field(default="")
@@ -33,9 +34,8 @@ class OutputState(BaseModel):
     message_from_interviewer: str = Field(default="")
 
 class OverallState(InputState, OutputState):
-    start_time: datetime.datetime = Field(default=datetime.datetime.now())
-
-    is_thought_process_stage: bool = Field(default=True)
+    greeting_msg_index: int = Field(default=0)
+    stage: Literal["greeting", "thought_process", "coding"] = Field(default="greeting")
 
     test_result: str = Field(default="")
     #TODO: evolution of the code and test result. 

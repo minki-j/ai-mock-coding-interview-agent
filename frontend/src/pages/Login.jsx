@@ -16,6 +16,7 @@ const Login = () => {
   const handleLoginSuccess = async (response) => {
     console.log("Login Success");
     const decoded = jwtDecode(response.credential);
+    sessionStorage.setItem("userName", decoded.name);
     const res = await fetch("/add_user", {
       method: "POST",
       headers: {
@@ -30,6 +31,8 @@ const Login = () => {
     sessionStorage.setItem("userId", data.id);
     if (res.ok) {
       navigate("/");
+    } else {
+      console.error("Failed to add user");
     }
   };
 

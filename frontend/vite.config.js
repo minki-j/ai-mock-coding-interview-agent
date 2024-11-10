@@ -29,8 +29,18 @@ export default defineConfig({
         target: backendUrl,
         changeOrigin: true,
       },
+      "/get_all_interviews": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
+      "/delete_all_interviews": {
+        target: backendUrl,
+        changeOrigin: true,
+      },
     },
     host: true,
     port: 3001,
   },
 });
+
+// 67309a27b948ea277e3af9cd
