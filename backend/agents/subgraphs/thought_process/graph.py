@@ -14,7 +14,6 @@ from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from pydantic import BaseModel, Field
 
 
-
 def thought_process(state: OverallState):
     print("\n>>> NODE: thought_process")
 
@@ -81,7 +80,7 @@ conversation: {conversation}"""
             )
             | chat_model.with_structured_output(ContextualizedGreetingMessage)
         )
-        
+
         stringified_messages = "\n".join(
             [f"{message.type}: {message.content}" for message in state.messages[1:]]
         )
@@ -95,7 +94,7 @@ conversation: {conversation}"""
 
         return {
             "message_from_interviewer": greeting_msg,
-            "messages": [greeting_msg],
+            "messages": [AIMessage(content=greeting_msg)],
         }
 
 

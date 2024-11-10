@@ -86,3 +86,12 @@ async def find_many(collection_name: str, query: dict):
             status_code=500,
             detail=f"Failed to find documents in {collection_name}"
         )
+    
+async def delete_many(collection_name: str, query: dict):
+    """Delete multiple documents in MongoDB collection."""
+    try:
+        collection = await get_collection(collection_name)
+        await collection.delete_many(query)
+    except Exception as e:
+        print(f"Error deleting documents in {collection_name}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete documents in {collection_name}")
