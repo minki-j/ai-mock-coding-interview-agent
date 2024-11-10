@@ -112,15 +112,16 @@ def generate_code_feedback(state: OverallState):
 
 
 def should_generate_code_feedback(state: OverallState, config):
-    if config["configurable"]["get_code_feedback"]:
-        return n(generate_code_feedback)
-    return n(generate_default_feedback)
+    return n(generate_code_feedback)
+    # if config["configurable"]["get_code_feedback"]:
+    #     return n(generate_code_feedback)
+    # return n(generate_default_feedback)
 
 
 def just_started_feedback_agent(state: OverallState):
     if state.stage != "coding":
         return n(generate_first_reply)
-    return n(generate_default_feedback)
+    return n(should_generate_code_feedback)
 
 
 def generate_first_reply(state: OverallState):
