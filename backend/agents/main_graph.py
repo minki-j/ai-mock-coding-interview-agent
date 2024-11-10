@@ -6,28 +6,36 @@ from pydantic import BaseModel, Field
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import START, END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 
 from agents.state_schema import OverallState, InputState, OutputState
 
+from agents.llm_models import chat_model
 from agents.subgraphs.feedback_agent.graph import feedback_agent_graph
 from agents.subgraphs.thought_process.graph import thought_process_graph
-from agents.llm_models import chat_model
+from agents.subgraphs.assessment_agent.graph import assessment_agent_graph
 
 
-
-
-def check_if_thought_process_stage(state: OverallState) -> bool:
+def stage_router(state: OverallState) -> bool:
     class ClassifierResponse(BaseModel):
         rationale: str = Field(description="The rationale for the decision.")
         should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
 
-    print("\n>>> NODE: check_if_thought_process_stage")
-    if state.stage != "thought_process" and state.stage != "greeting":
+    print("\n>>> NODE: stage_router")
+    if state.stage == "coding":
         return n(feedback_agent_graph)
 
-    chain = ChatPromptTemplate.from_template("""
-You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual interview stage: The candidate is writing code to solve the problem.
+    if state.stage == "assessment":
+        return n(assessment_agent_graph)
+
+    if len(state.messages[1:]) < 2:
+        return n(thought_process_graph)
+
+    chain = (
+        ChatPromptTemplate.from_template(
+            """
+You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
 The candidate is currently in the thought process stage. You need to decide if the candidate has provided enough thought process for the problem and can move on to the actual interview stage.
 
 ----
@@ -43,23 +51,26 @@ Important rules:
 
 Here is the current conversation:
 {messages}
-""") | chat_model.with_structured_output(ClassifierResponse)
+"""
+        )
+        | chat_model.with_structured_output(ClassifierResponse)
+    )
 
-    stringified_messages = "\n".join([f"{message.type}: {message.content}" for message in state.messages])
+    stringified_messages = "\n".join([f">>{message.type.upper()}: {message.content}" for message in state.messages[1:]])
 
     if not chain.invoke({"messages": stringified_messages}).should_end_thought_process:
         return n(thought_process_graph)
-
-    return n(feedback_agent_graph)
+    else:
+        return n(feedback_agent_graph)
 
 g = StateGraph(OverallState, input=InputState, output=OutputState)
-g.add_edge(START, n(check_if_thought_process_stage))
+g.add_edge(START, n(stage_router))
 
-g.add_node(n(check_if_thought_process_stage), RunnablePassthrough())
+g.add_node(n(stage_router), RunnablePassthrough())
 g.add_conditional_edges(
-    n(check_if_thought_process_stage),
-    check_if_thought_process_stage,
-    [n(feedback_agent_graph), n(thought_process_graph)],
+    n(stage_router),
+    stage_router,
+    [n(feedback_agent_graph), n(thought_process_graph), n(assessment_agent_graph)],
 )
 
 g.add_node(n(thought_process_graph), thought_process_graph)
@@ -68,8 +79,11 @@ g.add_edge(n(thought_process_graph), "end_of_loop")
 g.add_node(n(feedback_agent_graph), feedback_agent_graph)
 g.add_edge(n(feedback_agent_graph), "end_of_loop")
 
+g.add_node(n(assessment_agent_graph), assessment_agent_graph)
+g.add_edge(n(assessment_agent_graph), "end_of_loop")
+
 g.add_node("end_of_loop", RunnablePassthrough())
-g.add_edge("end_of_loop", n(check_if_thought_process_stage))
+g.add_edge("end_of_loop", n(stage_router))
 
 os.makedirs("./data/graph_checkpoints", exist_ok=True)
 db_path = os.path.join(".", "data", "graph_checkpoints", "checkpoints.sqlite")

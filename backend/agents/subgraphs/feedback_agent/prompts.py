@@ -7,11 +7,19 @@ In this task you are given a coding challenge, the correct solution for the chal
 2. "correct": The correct parts of the user solution
 3. "incorrect": The incorrect parts of the user solution
 
+--------------------------------
+
 question: {question}s
+
+--------------------------------
 
 correct_solution: {correct_solution}
 
+--------------------------------
+
 user_solution: {user_solution}
+
+--------------------------------
 
 Perform a step by step comparative analysis as described above and output in the required JSON format.
 """
@@ -23,11 +31,19 @@ In this task you are given a coding question, the user's solution for the questi
 1. Start by appreciating the user for what they have got right.
 2. Explain the incorrect parts of the user's answer. But be very careful to not give away the solution. Construct a useful and implementable hint using the expert assessment and convey that to the user.
 
+--------------------------------
+
 question: {question}
+
+--------------------------------
 
 user_solution: {user_solution}
 
+--------------------------------
+
 assessment: {assessment}
+
+--------------------------------
 
 Generated a feedback grounded in this infromation using the steps mentioned above. Remember to not reveal the solution directly.
 """
@@ -92,6 +108,8 @@ Avoid Direct Solutions: Refrain from directly providing the correct code or a co
 
 Ground all your responses on the question and solution below.
 
+--------------------------------
+
 <question>
 {question}
 </question>
@@ -99,6 +117,8 @@ Ground all your responses on the question and solution below.
 <solution>
 {solution}
 </solution>
+
+--------------------------------
 
 Remember to not reveal the solution.
 """
@@ -112,13 +132,19 @@ Your task is to refine and rewrite the feedback to ensure that the feedback does
 {question}
 </question>
 
+--------------------------------
+
 <solution>
 {solution}
 </solution>
 
+--------------------------------
+
 <feedback>
 {feedback}
 </feedback>
+
+--------------------------------
 
 Keep the key components of the feedback but eliminate solution revealing details. Replace them with useful hints only. If there are many hints given, choose the ONE most important hint.
 """

@@ -155,9 +155,12 @@ async def add_user(user: dict):
 async def init_interview(interview_info: dict):
     print(f"==>> init_interview with user_id: {interview_info['user_id']}")
     user_id = ObjectId(interview_info["user_id"])
-    interview_id = await insert_document("interviews", {
-        "user_id": user_id,
-    })
+    interview_id = await insert_document(
+        "interviews",
+        {
+            "user_id": user_id,
+        },
+    )
 
     main_graph.invoke(
         input={
@@ -181,7 +184,11 @@ async def chat(data: dict):
     }
     main_graph.update_state(
         config,
-        {"messages": [HumanMessage(content=data["message"])]},
+        {
+            "messages": [HumanMessage(content=data["message"])],
+            "code_editor_state": data["code_editor_state"],
+            "test_result": data["test_result"],
+        },
     )
     output = main_graph.invoke(None, config)
 
@@ -234,9 +241,9 @@ async def get_interview_questions():
     return questions
 
 
-@app.get("/get_all_interviews/{user_id}")
-async def get_all_interviews(user_id: str):
-    print(f"==>> get_all_interviews with user_id: {user_id}")
+@app.get("/get_history/{user_id}")
+async def get_history(user_id: str):
+    print(f"==>> get_history with user_id: {user_id}")
     interview_ids = await find_many("interviews", {"user_id": ObjectId(user_id)})
     interview_ids = [str(interview_id["_id"]) for interview_id in interview_ids]
     print(f"==>> interview_ids: {interview_ids}")
@@ -255,10 +262,11 @@ async def get_all_interviews(user_id: str):
     return interviews
 
 
-@app.delete("/delete_all_interviews/{user_id}")
-async def delete_all_interviews(user_id: str):
+@app.delete("/delete_all_history/{user_id}")
+async def delete_all_history(user_id: str):
     await delete_many("interviews", {"user_id": ObjectId(user_id)})
     return {"status": "success"}
+
 
 @app.get("/health")
 async def health_check():
