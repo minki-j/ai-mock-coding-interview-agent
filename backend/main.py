@@ -195,6 +195,17 @@ async def chat(data: dict):
     return output["message_from_interviewer"]
 
 
+@app.post("/update_code_editor_state")
+async def update_code_editor_state(data: dict):
+    main_graph.update_state(
+        {"configurable": {"thread_id": data["interview_id"]}},
+        {
+            "code_editor_state": data["code_editor_state"],
+            "test_result": data["test_result"],
+        },
+    )
+
+
 class InterviewUIState(BaseModel):
     interview_question: str
     messages: List[Dict]

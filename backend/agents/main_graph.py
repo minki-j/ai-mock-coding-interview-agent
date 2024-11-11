@@ -23,14 +23,14 @@ def stage_router(state: OverallState) -> bool:
         should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
 
     print("\n>>> NODE: stage_router")
+    if state.stage == "greeting":
+        return n(thought_process_graph)
+    
     if state.stage == "coding":
         return n(feedback_agent_graph)
 
     if state.stage == "assessment":
         return n(assessment_agent_graph)
-
-    if len(state.messages[1:]) < 2:
-        return n(thought_process_graph)
 
     chain = (
         ChatPromptTemplate.from_template(

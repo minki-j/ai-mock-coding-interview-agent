@@ -107,6 +107,7 @@ Sometimes the interviewee might ask a question that is not covered in the predef
             "message_from_interviewer": greeting_msg,
             "messages": [AIMessage(content=greeting_msg)],
             "greeting_msg_index": greeting_msg_index,
+            "stage": "greeting" if greeting_msg_index < len(greeting_messages) else "thought_process",
         }
 
 
