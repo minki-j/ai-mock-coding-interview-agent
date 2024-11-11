@@ -25,7 +25,7 @@ def stage_router(state: OverallState) -> bool:
     print("\n>>> NODE: stage_router")
     if state.stage == "greeting":
         return n(thought_process_graph)
-    
+
     if state.stage == "coding":
         return n(feedback_agent_graph)
 
@@ -56,7 +56,12 @@ Here is the current conversation:
         | chat_model.with_structured_output(ClassifierResponse)
     )
 
-    stringified_messages = "\n".join([f">>{message.type.upper()}: {message.content}" for message in state.messages[1:]])
+    stringified_messages = "\n\n".join(
+        [
+            f">>{message.type.upper()}: {message.content}"
+            for message in state.messages[1:]
+        ]
+    )
 
     if not chain.invoke({"messages": stringified_messages}).should_end_thought_process:
         return n(thought_process_graph)

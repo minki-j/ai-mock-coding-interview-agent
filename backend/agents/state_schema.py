@@ -40,6 +40,7 @@ class OverallState(InputState, OutputState):
     stage: Literal["greeting", "thought_process", "coding", "assessment"] = Field(
         default="greeting"
     )
+    thought_process_summary: str = Field(default="")
 
     # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")

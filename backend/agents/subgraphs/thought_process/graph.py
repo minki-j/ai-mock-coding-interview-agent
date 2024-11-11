@@ -27,7 +27,7 @@ def thought_process(state: OverallState):
 
     return {
         "message_from_interviewer": reply,
-        "messages": [reply],
+        "messages": [AIMessage(content=reply)],
     }
 
 
@@ -85,8 +85,8 @@ Sometimes the interviewee might ask a question that is not covered in the predef
             | chat_model.with_structured_output(ContextualizedGreetingMessage)
         )
 
-        stringified_messages = "\n".join(
-            [f"{message.type}: {message.content}" for message in state.messages[1:]]
+        stringified_messages = "\n\n".join(
+            [f">>{message.type}: {message.content}" for message in state.messages[1:]]
         )
 
         response = chain.invoke(

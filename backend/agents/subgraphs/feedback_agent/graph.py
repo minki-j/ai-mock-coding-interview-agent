@@ -1,12 +1,13 @@
 import os
 from varname import nameof as n
 from pydantic import BaseModel, Field
+from enum import Enum
 from langgraph.graph import START, END, StateGraph
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 
 from agents.state_schema import OverallState
 from agents.llm_models import chat_model
@@ -14,29 +15,21 @@ from agents.llm_models import chat_model
 from agents.subgraphs.feedback_agent import prompts
 
 
-def generate_default_feedback(state: OverallState):
-    print("\n>>> NODE: generate_default_feedback")
+def answer_general_question(state: OverallState):
+    print("\n>>> NODE: answer_general_question")
 
-    messages = [SystemMessage(content=prompts.TURN_N_ASSESSMENT_SYSTEM_PROMPT)]
-
-    last_user_message = None
-    for message in state.messages:
-        if message.type != "system":
-            messages.append(message)
-            if message.type == "human":
-                last_user_message = message
-
-    # Add user code to last user message
-    if last_user_message:
-        last_user_message.content = (
-            f"{last_user_message.content}\n\n{state.code_editor_state}"
-        )
-
-    chain = ChatPromptTemplate.from_messages(messages) | chat_model
-    assessment_response = chain.invoke(
+    chain = (
+        ChatPromptTemplate.from_template(prompts.DEFAULT_FEEDBACK_PROMPT) | chat_model
+    )
+    feedback_response = chain.invoke(
         {
-            "question": state.interview_question,
-            "solution": state.interview_solution,
+            "messages": "\n\n".join(
+                [
+                    f">>{message.type}: {message.content}"
+                    for message in state.messages[-4:]  # last 4 messages
+                ]
+            ),
+            "code_editor_state": state.code_editor_state,
         }
     )
 
@@ -111,53 +104,57 @@ def generate_code_feedback(state: OverallState):
     }
 
 
-def should_generate_code_feedback(state: OverallState, config):
-    return n(generate_code_feedback)
-    # if config["configurable"]["get_code_feedback"]:
-    #     return n(generate_code_feedback)
-    # return n(generate_default_feedback)
+def user_intent_classifier(state: OverallState):
+
+    class Intent(Enum):
+        GENERAL_QUESTION = "asking_general_question"
+        CODE_FEEDBACK = "asking_for_code_feedback"
+
+    class UserIntentResponse(BaseModel):
+        rationale: str = Field(description="The rationale for the user's intent.")
+        user_intent: Intent = Field(
+            description="If the user's intent is 'asking_general_question', the user is asking a question about details of a library, API, or general programming knowledge that is not the complete solution to the problem.\n\nIf the user's intent is 'asking_for_code_feedback', the user wants to get feedback on their code solution."
+        )
+
+    chain = ChatPromptTemplate.from_template(
+        prompts.USER_INTENT_CLASSIFIER_PROMPT
+    ) | chat_model.with_structured_output(UserIntentResponse)
+
+    response = chain.invoke(
+        {
+            "messages": "\n\n".join(
+                [
+                    f">>{message.type.upper()}: {message.content}"
+                    for message in state.messages[-4:]  # last 4 messages
+                ]
+            ),
+        }
+    )
+
+    if response.user_intent == Intent.CODE_FEEDBACK:
+        return n(generate_code_feedback)
+    elif response.user_intent == Intent.GENERAL_QUESTION:
+        return n(answer_general_question)
+    else:
+        raise ValueError(f"Invalid user intent: {response.user_intent}")
 
 
 def just_started_feedback_agent(state: OverallState):
     if state.stage != "coding":
-        return n(generate_first_reply)
-    return n(should_generate_code_feedback)
+        return [n(generate_first_reply), n(summarize_thought_process)]
+    return n(user_intent_classifier)
 
 
-def generate_first_reply(state: OverallState):
+async def generate_first_reply(state: OverallState):
+    """Also summarize the thought process"""
     chain = (
-        ChatPromptTemplate.from_template(
-            """
-You are interviewing a candidate for a software engineering role. There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
-You've been in the thought process stage and now it's time to move on to the actual coding stage. 
-
---- 
-
-## current conversation
-{messages}
-
---- 
-
-## predefined reply
-Great job on the thought process! Now, let’s dive into coding:
-1. Use the code editor on the right to start implementing your ideas.
-2. Feel free to adjust your plan, but let me know here if you do.
-3. You can ask for feedback at any stage—I’ll provide tips without giving away the full solution.
-4. If you need any clarification, just ask.
-Alright, let’s start coding!
-
----
-
-Modify the predefined reply to fit in the conversation. Only return the modified reply without any other text such as "Here is the modified reply:" or anything like that.
-"""
-        )
+        ChatPromptTemplate.from_template(prompts.FIRST_REPLY_PROMPT)
         | chat_model
         | StrOutputParser()
     )
-
-    reply = chain.invoke(
+    first_reply = await chain.invoke(
         {
-            "messages": "\n".join(
+            "messages": "\n\n".join(
                 [
                     f">>{message.type.upper()}: {message.content}"
                     for message in state.messages[1:]
@@ -168,8 +165,29 @@ Modify the predefined reply to fit in the conversation. Only return the modified
 
     return {
         "stage": "coding",
-        "message_from_interviewer": reply,
-        "messages": [AIMessage(content=reply)],
+        "message_from_interviewer": first_reply,
+        "messages": [AIMessage(content=first_reply)],
+    }
+
+
+def summarize_thought_process(state: OverallState):
+    chain = (
+        ChatPromptTemplate.from_template(prompts.THOUGHT_PROCESS_SUMMARY_PROMPT)
+        | chat_model
+        | StrOutputParser()
+    )
+    thought_process_summary = chain.invoke(
+        {
+            "messages": "\n\n".join(
+                [
+                    f">>{message.type.upper()}: {message.content}"
+                    for message in state.messages
+                ]
+            )
+        }
+    )
+    return {
+        "thought_process_summary": thought_process_summary,
     }
 
 
@@ -181,24 +199,26 @@ g.add_node(n(just_started_feedback_agent), RunnablePassthrough())
 g.add_conditional_edges(
     n(just_started_feedback_agent),
     just_started_feedback_agent,
-    [n(generate_first_reply), n(should_generate_code_feedback)],
+    [n(generate_first_reply), n(user_intent_classifier), n(summarize_thought_process)],
 )
 
 g.add_node(generate_first_reply)
 g.add_edge(n(generate_first_reply), END)
 
+g.add_node(summarize_thought_process)
+g.add_edge(n(summarize_thought_process), END)
 
-g.add_node(n(should_generate_code_feedback), RunnablePassthrough())
+g.add_node(n(user_intent_classifier), RunnablePassthrough())
 g.add_conditional_edges(
-    n(should_generate_code_feedback),
-    should_generate_code_feedback,
-    [n(generate_code_feedback), n(generate_default_feedback)],
+    n(user_intent_classifier),
+    user_intent_classifier,
+    [n(generate_code_feedback), n(answer_general_question)],
 )
 
 g.add_node(n(generate_code_feedback), generate_code_feedback)
 g.add_edge(n(generate_code_feedback), END)
 
-g.add_node(n(generate_default_feedback), generate_default_feedback)
-g.add_edge(n(generate_default_feedback), END)
+g.add_node(n(answer_general_question), answer_general_question)
+g.add_edge(n(answer_general_question), END)
 
 feedback_agent_graph = g.compile()

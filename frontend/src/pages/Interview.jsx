@@ -15,6 +15,7 @@ const Interview = () => {
   const [isEditorVisible, setIsEditorVisible] = useState(true);
   const [isResultsVisible, setIsResultsVisible] = useState(true);
   const isFirstRender = useRef(true);
+  const skipNextCodeEditorUpdate = useRef(false);
 
   const executeCode = async () => {
     setTestResult("Running code...");
@@ -57,6 +58,7 @@ const Interview = () => {
           setTestResult(data.test_result);
         }
         setInterviewQuestion(data.interview_question || "");
+        skipNextCodeEditorUpdate.current = true;
       } catch (error) {
         console.error("Error fetching interview:", error);
       }
@@ -106,12 +108,17 @@ const Interview = () => {
   };
 
   useEffect(() => {
+    if (skipNextCodeEditorUpdate.current) {
+      skipNextCodeEditorUpdate.current = false;
+      return;
+    }
+
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
     }
 
-    if (code.length === 0) {
+    if (code.length === 0 && testResult.length === 0) {
       return;
     }
 
@@ -134,8 +141,8 @@ const Interview = () => {
   }, [code, testResult]);
 
   const handleFinalSolutionSubmit = async (e) => {
+    console.log("Submitting final solution");
     e.preventDefault();
-    console.log("Code submitted:", code);
     // Here you can handle the code submission logic
   };
 
