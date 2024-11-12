@@ -50,7 +50,9 @@ const Home = () => {
           user_id: sessionStorage.getItem("userId"),
           interviewee_name: sessionStorage.getItem("userName"),
           interview_question: question.content,
+          interview_question_md: question.content_md,
           interview_solution: question.solution.content,
+          interview_solution_md: question.solution_md,
         }),
       });
       if (response.ok) {
@@ -173,6 +175,10 @@ const Home = () => {
                 )}
               </button>
             </div>
+          <div className="hidden">
+            <div data-content-md={question.content_md}></div>
+            <div data-solution-md={question.solution_md}></div>
+          </div>
           </div>
         ))}
       </div>

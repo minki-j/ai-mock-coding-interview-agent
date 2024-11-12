@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import PythonEditor from "../components/PythonEditor";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -10,12 +10,12 @@ const Interview = () => {
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [code, setCode] = useState("");
-  const [testResult, setTestResult] = useState(
-    "Once you run the code, you will see the results here."
-  );
+  const [testResult, setTestResult] = useState("");
   const [isQuestionsVisible, setIsQuestionsVisible] = useState(true);
   const [isEditorVisible, setIsEditorVisible] = useState(true);
   const [isResultsVisible, setIsResultsVisible] = useState(true);
+  const isFirstRender = useRef(true);
+  const skipNextCodeEditorUpdate = useRef(false);
 
   const executeCode = async () => {
     setTestResult("Running code...");
@@ -58,6 +58,7 @@ const Interview = () => {
           setTestResult(data.test_result);
         }
         setInterviewQuestion(data.interview_question || "");
+        skipNextCodeEditorUpdate.current = true;
       } catch (error) {
         console.error("Error fetching interview:", error);
       }
@@ -106,9 +107,42 @@ const Interview = () => {
     }
   };
 
+  useEffect(() => {
+    if (skipNextCodeEditorUpdate.current) {
+      skipNextCodeEditorUpdate.current = false;
+      return;
+    }
+
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (code.length === 0 && testResult.length === 0) {
+      return;
+    }
+
+    const timeoutId = setTimeout(() => {
+      const handleUpdateCodeEditorState = async () => {
+        await fetch("/update_code_editor_state", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            interview_id: id,
+            code_editor_state: code,
+            test_result: testResult,
+          }),
+        });
+      };
+      handleUpdateCodeEditorState();
+    }, 5000);
+
+    return () => clearTimeout(timeoutId);
+  }, [code, testResult]);
+
   const handleFinalSolutionSubmit = async (e) => {
+    console.log("Submitting final solution");
     e.preventDefault();
-    console.log("Code submitted:", code);
     // Here you can handle the code submission logic
   };
 

@@ -1,46 +1,38 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-const running_on_docker = process.env.DOCKER_ENV === 'true';
-const backendUrl = running_on_docker ? "http://fastapi:8000" : "http://localhost:8000";
+console.log("process.env.DOCKER_ENV:", process.env.DOCKER_ENV);
+const running_on_docker = process.env.DOCKER_ENV === "true";
+const backendUrl = running_on_docker
+  ? "http://fastapi:8000"
+  : "http://localhost:8000";
 
-// https://vite.dev/config/
+const proxyEndpoints = [
+  "/execute",
+  "/get_interview",
+  "/chat",
+  "/init_interview",
+  "/add_user",
+  "/get_history",
+  "/delete_all_history",
+  "/update_code_editor_state",
+];
+
+const proxyConfig = Object.fromEntries(
+  proxyEndpoints.map((endpoint) => [
+    endpoint,
+    {
+      target: backendUrl,
+      changeOrigin: true,
+    },
+  ])
+);
+
 export default defineConfig({
   plugins: [react()],
   server: {
-    proxy: {
-      "/execute": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/get_interview": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/chat": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/init_interview": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/add_user": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/get_history": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-      "/delete_all_history": {
-        target: backendUrl,
-        changeOrigin: true,
-      },
-    },
+    proxy: proxyConfig,
     host: true,
     port: 3001,
   },
 });
-
-// 67309a27b948ea277e3af9cd

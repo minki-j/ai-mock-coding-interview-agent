@@ -9,7 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
 
 from agents.llm_models import chat_model
-from agents.subgraphs.thought_process.prompts import default_system_message
+from agents.subgraphs.thought_process_stage.prompts import default_system_message
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from pydantic import BaseModel, Field
 
@@ -27,7 +27,7 @@ def thought_process(state: OverallState):
 
     return {
         "message_from_interviewer": reply,
-        "messages": [reply],
+        "messages": [AIMessage(content=reply)],
     }
 
 
@@ -85,8 +85,8 @@ Sometimes the interviewee might ask a question that is not covered in the predef
             | chat_model.with_structured_output(ContextualizedGreetingMessage)
         )
 
-        stringified_messages = "\n".join(
-            [f"{message.type}: {message.content}" for message in state.messages[1:]]
+        stringified_messages = "\n\n".join(
+            [f">>{message.type}: {message.content}" for message in state.messages[1:]]
         )
 
         response = chain.invoke(
@@ -107,6 +107,7 @@ Sometimes the interviewee might ask a question that is not covered in the predef
             "message_from_interviewer": greeting_msg,
             "messages": [AIMessage(content=greeting_msg)],
             "greeting_msg_index": greeting_msg_index,
+            "stage": "greeting" if greeting_msg_index < len(greeting_messages) else "thought_process",
         }
 
 
@@ -126,4 +127,4 @@ g.add_edge(n(greeting), END)
 g.add_node(thought_process)
 g.add_edge(n(thought_process), END)
 
-thought_process_graph = g.compile()
+thought_process_stage_graph = g.compile()

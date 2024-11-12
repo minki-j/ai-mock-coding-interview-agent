@@ -6,7 +6,7 @@ import requests
 from typing import Dict
 from dotenv import load_dotenv
 from problem_names import PROBLEM_NAMES
-
+from markdownify import markdownify
 
 class LeetCodeScraper:
     def __init__(self):
@@ -66,6 +66,11 @@ def main():
 
         print(f">> Scraping problem: {problem_name}")
         result = scraper.scrape_problem(problem_name)
+        result["content_md"] = markdownify(result["content"])
+        if result.get("solution") and result["solution"].get("content"):
+            result["solution_md"] = markdownify(result["solution"]["content"])
+        else:
+            result["solution_md"] = None
 
         with open(
             f"./data/{problem_name}.json",

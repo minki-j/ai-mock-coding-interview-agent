@@ -6,7 +6,7 @@ from typing import Annotated, List, Literal
 from pydantic import BaseModel, Field
 from langgraph.graph.message import AnyMessage, add_messages
 
-from agents.subgraphs.thought_process.prompts import default_system_message
+from agents.subgraphs.thought_process_stage.prompts import default_system_message
 
 INTERVIEW_TIME_IN_MINUTES = 60  # 45 minutes
 THOUGHT_TIME_IN_MINUTES = 10  # 10 minutes
@@ -28,7 +28,9 @@ class InputState(BaseModel):
     interviewee_name: str = Field(default="")
     difficulty_level: Literal["easy", "medium", "hard"] = Field(default="easy")
     interview_question: str = Field(default="")
+    interview_question_md: str = Field(default="")
     interview_solution: str = Field(default="")
+    interview_solution_md: str = Field(default="")
 
 
 class OutputState(BaseModel):
@@ -40,6 +42,7 @@ class OverallState(InputState, OutputState):
     stage: Literal["greeting", "thought_process", "coding", "assessment"] = Field(
         default="greeting"
     )
+    thought_process_summary: str = Field(default="")
 
     # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")
