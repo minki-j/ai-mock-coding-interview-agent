@@ -12,9 +12,9 @@ from langchain_core.prompts import ChatPromptTemplate
 from agents.state_schema import OverallState, InputState, OutputState
 
 from agents.llm_models import chat_model
-from agents.subgraphs.feedback_agent.graph import feedback_agent_graph
-from agents.subgraphs.thought_process.graph import thought_process_graph
-from agents.subgraphs.assessment_agent.graph import assessment_agent_graph
+from agents.subgraphs.coding_stage.graph import coding_stage_graph
+from agents.subgraphs.thought_process_stage.graph import thought_process_stage_graph
+from agents.subgraphs.final_assessment_stage.graph import final_assessment_stage_graph
 
 
 def stage_router(state: OverallState) -> bool:
@@ -24,13 +24,13 @@ def stage_router(state: OverallState) -> bool:
 
     print("\n>>> NODE: stage_router")
     if state.stage == "greeting":
-        return n(thought_process_graph)
+        return n(thought_process_stage_graph)
 
     if state.stage == "coding":
-        return n(feedback_agent_graph)
+        return n(coding_stage_graph)
 
     if state.stage == "assessment":
-        return n(assessment_agent_graph)
+        return n(final_assessment_stage_graph)
 
     chain = (
         ChatPromptTemplate.from_template(
@@ -64,9 +64,9 @@ Here is the current conversation:
     )
 
     if not chain.invoke({"messages": stringified_messages}).should_end_thought_process:
-        return n(thought_process_graph)
+        return n(thought_process_stage_graph)
     else:
-        return n(feedback_agent_graph)
+        return n(coding_stage_graph)
 
 g = StateGraph(OverallState, input=InputState, output=OutputState)
 g.add_edge(START, n(stage_router))
@@ -75,17 +75,17 @@ g.add_node(n(stage_router), RunnablePassthrough())
 g.add_conditional_edges(
     n(stage_router),
     stage_router,
-    [n(feedback_agent_graph), n(thought_process_graph), n(assessment_agent_graph)],
+    [n(coding_stage_graph), n(thought_process_stage_graph), n(final_assessment_stage_graph)],
 )
 
-g.add_node(n(thought_process_graph), thought_process_graph)
-g.add_edge(n(thought_process_graph), "end_of_loop")
+g.add_node(n(thought_process_stage_graph), thought_process_stage_graph)
+g.add_edge(n(thought_process_stage_graph), "end_of_loop")
 
-g.add_node(n(feedback_agent_graph), feedback_agent_graph)
-g.add_edge(n(feedback_agent_graph), "end_of_loop")
+g.add_node(n(coding_stage_graph), coding_stage_graph)
+g.add_edge(n(coding_stage_graph), "end_of_loop")
 
-g.add_node(n(assessment_agent_graph), assessment_agent_graph)
-g.add_edge(n(assessment_agent_graph), "end_of_loop")
+g.add_node(n(final_assessment_stage_graph), final_assessment_stage_graph)
+g.add_edge(n(final_assessment_stage_graph), "end_of_loop")
 
 g.add_node("end_of_loop", RunnablePassthrough())
 g.add_edge("end_of_loop", n(stage_router))
@@ -98,4 +98,4 @@ memory = SqliteSaver(conn)
 main_graph = g.compile(checkpointer=memory, interrupt_before=["end_of_loop"])
 
 with open("./agents/graph_diagrams/main_graph.png", "wb") as f:
-    f.write(main_graph.get_graph(xray=10).draw_mermaid_png())
+    f.write(main_graph.get_graph(xray=1).draw_mermaid_png())

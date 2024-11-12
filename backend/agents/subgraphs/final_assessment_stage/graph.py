@@ -11,11 +11,9 @@ from agents.state_schema import OverallState
 
 from agents.llm_models import chat_model
 
-
 g = StateGraph(OverallState)
 g.add_edge(START, "start")
-
 g.add_node("start", RunnablePassthrough())
 g.add_edge("start", END)
 
-assessment_agent_graph = g.compile()
+final_assessment_stage_graph = g.compile()

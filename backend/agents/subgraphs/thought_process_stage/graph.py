@@ -9,7 +9,7 @@ from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
 
 from agents.llm_models import chat_model
-from agents.subgraphs.thought_process.prompts import default_system_message
+from agents.subgraphs.thought_process_stage.prompts import default_system_message
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from pydantic import BaseModel, Field
 
@@ -127,4 +127,4 @@ g.add_edge(n(greeting), END)
 g.add_node(thought_process)
 g.add_edge(n(thought_process), END)
 
-thought_process_graph = g.compile()
+thought_process_stage_graph = g.compile()

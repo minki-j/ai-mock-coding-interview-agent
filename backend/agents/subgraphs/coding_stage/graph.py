@@ -12,16 +12,17 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from agents.state_schema import OverallState
 from agents.llm_models import chat_model
 
-from agents.subgraphs.feedback_agent import prompts
+from agents.subgraphs.coding_stage import prompts
+
+from agents.subgraphs.code_feedback_agent.graph import code_feedback_agent_graph
 
 
 def answer_general_question(state: OverallState):
     print("\n>>> NODE: answer_general_question")
 
-    chain = (
+    reply = (
         ChatPromptTemplate.from_template(prompts.DEFAULT_FEEDBACK_PROMPT) | chat_model
-    )
-    feedback_response = chain.invoke(
+    ).invoke(
         {
             "messages": "\n\n".join(
                 [
@@ -30,78 +31,46 @@ def answer_general_question(state: OverallState):
                 ]
             ),
             "code_editor_state": state.code_editor_state,
-        }
-    )
-
-    chain = (
-        ChatPromptTemplate.from_template(prompts.SOLUTION_ELIMINATION_PROMPT)
-        | chat_model
-    )
-
-    feedback_response = chain.invoke(
-        {
-            "question": state.interview_question,
-            "solution": state.interview_solution,
-            "feedback": assessment_response.content,
+            "interview_question": state.interview_question,
         }
     )
 
     return {
-        "message_from_interviewer": feedback_response.content,
-        "messages": [feedback_response],
+        "message_from_interviewer": reply.content,
     }
 
 
-def generate_code_feedback(state: OverallState):
-    print("\n>>> NODE: generate_code_feedback")
-
-    chain = ChatPromptTemplate.from_template(prompts.ASSESSMENT_PROMPT) | chat_model
-
-    assessment_response = chain.invoke(
-        {
-            "question": state.interview_question,
-            "correct_solution": state.interview_solution,
-            "user_solution": state.code_editor_state,
-        }
-    )
-
-    chain = ChatPromptTemplate.from_template(prompts.FEEDBACK_PROMPT) | chat_model
-
-    feedback_response = chain.invoke(
-        {
-            "question": state.interview_question,
-            "user_solution": state.code_editor_state,
-            "assessment": assessment_response.content,
-        }
-    )
+def check_if_solution_is_leaked(state: OverallState):
+    print("\n>>> NODE: check_if_solution_is_leaked")
 
     class SolutionEliminationResponse(BaseModel):
         is_solution_revealed: bool = Field(
             description="Whether the solution is revealed in the feedback."
         )
         amended_feedback: str = Field(
-            description="The feedback with the solution removed. If the solution is not revealed, return an empty string."
+            description="If solution is revealed, amend the feedback so that the solution is not revealed. If the solution is not revealed, return an empty string."
         )
 
-    chain = ChatPromptTemplate.from_template(
-        prompts.SOLUTION_ELIMINATION_PROMPT
-    ) | chat_model.with_structured_output(SolutionEliminationResponse)
-
-    validation_result = chain.invoke(
+    validation_result = (
+        ChatPromptTemplate.from_template(prompts.SOLUTION_ELIMINATION_PROMPT)
+        | chat_model.with_structured_output(SolutionEliminationResponse)
+    ).invoke(
         {
             "question": state.interview_question,
             "solution": state.interview_solution,
-            "feedback": feedback_response.content,
+            "feedback": state.message_from_interviewer,
         }
     )
 
     if validation_result.is_solution_revealed:
-        feedback_response.content = validation_result.amended_feedback
-
-    return {
-        "message_from_interviewer": feedback_response.content,
-        "messages": [feedback_response],
-    }
+        return {
+            "message_from_interviewer": validation_result.amended_feedback,
+            "messages": [AIMessage(content=validation_result.amended_feedback)],
+        }
+    else:
+        return {
+            "messages": [AIMessage(content=state.message_from_interviewer)],
+        }
 
 
 def user_intent_classifier(state: OverallState):
@@ -116,11 +85,10 @@ def user_intent_classifier(state: OverallState):
             description="If the user's intent is 'asking_general_question', the user is asking a question about details of a library, API, or general programming knowledge that is not the complete solution to the problem.\n\nIf the user's intent is 'asking_for_code_feedback', the user wants to get feedback on their code solution."
         )
 
-    chain = ChatPromptTemplate.from_template(
-        prompts.USER_INTENT_CLASSIFIER_PROMPT
-    ) | chat_model.with_structured_output(UserIntentResponse)
-
-    response = chain.invoke(
+    response = (
+        ChatPromptTemplate.from_template(prompts.USER_INTENT_CLASSIFIER_PROMPT)
+        | chat_model.with_structured_output(UserIntentResponse)
+    ).invoke(
         {
             "messages": "\n\n".join(
                 [
@@ -132,7 +100,7 @@ def user_intent_classifier(state: OverallState):
     )
 
     if response.user_intent == Intent.CODE_FEEDBACK:
-        return n(generate_code_feedback)
+        return n(code_feedback_agent_graph)
     elif response.user_intent == Intent.GENERAL_QUESTION:
         return n(answer_general_question)
     else:
@@ -141,18 +109,16 @@ def user_intent_classifier(state: OverallState):
 
 def just_started_feedback_agent(state: OverallState):
     if state.stage != "coding":
-        return [n(generate_first_reply), n(summarize_thought_process)]
+        return "parallel_execution"
     return n(user_intent_classifier)
 
 
-async def generate_first_reply(state: OverallState):
-    """Also summarize the thought process"""
-    chain = (
+def generate_first_reply(state: OverallState):
+    first_reply = (
         ChatPromptTemplate.from_template(prompts.FIRST_REPLY_PROMPT)
         | chat_model
         | StrOutputParser()
-    )
-    first_reply = await chain.invoke(
+    ).invoke(
         {
             "messages": "\n\n".join(
                 [
@@ -171,12 +137,11 @@ async def generate_first_reply(state: OverallState):
 
 
 def summarize_thought_process(state: OverallState):
-    chain = (
+    thought_process_summary = (
         ChatPromptTemplate.from_template(prompts.THOUGHT_PROCESS_SUMMARY_PROMPT)
         | chat_model
         | StrOutputParser()
-    )
-    thought_process_summary = chain.invoke(
+    ).invoke(
         {
             "messages": "\n\n".join(
                 [
@@ -199,26 +164,35 @@ g.add_node(n(just_started_feedback_agent), RunnablePassthrough())
 g.add_conditional_edges(
     n(just_started_feedback_agent),
     just_started_feedback_agent,
-    [n(generate_first_reply), n(user_intent_classifier), n(summarize_thought_process)],
+    [n(user_intent_classifier), "parallel_execution"],
 )
 
+g.add_node("parallel_execution", RunnablePassthrough())
+g.add_edge("parallel_execution", n(generate_first_reply))
+g.add_edge("parallel_execution", n(summarize_thought_process))
+
 g.add_node(generate_first_reply)
-g.add_edge(n(generate_first_reply), END)
+g.add_edge(n(generate_first_reply), "rendezvous")
 
 g.add_node(summarize_thought_process)
-g.add_edge(n(summarize_thought_process), END)
+g.add_edge(n(summarize_thought_process), "rendezvous")
+
+g.add_node("rendezvous", RunnablePassthrough())
+g.add_edge("rendezvous", END)
 
 g.add_node(n(user_intent_classifier), RunnablePassthrough())
 g.add_conditional_edges(
     n(user_intent_classifier),
     user_intent_classifier,
-    [n(generate_code_feedback), n(answer_general_question)],
+    [n(code_feedback_agent_graph), n(answer_general_question)],
 )
 
-g.add_node(n(generate_code_feedback), generate_code_feedback)
-g.add_edge(n(generate_code_feedback), END)
+g.add_node(n(code_feedback_agent_graph), code_feedback_agent_graph)
+g.add_edge(n(code_feedback_agent_graph), n(check_if_solution_is_leaked))
 
 g.add_node(n(answer_general_question), answer_general_question)
-g.add_edge(n(answer_general_question), END)
+g.add_edge(n(answer_general_question), n(check_if_solution_is_leaked))
 
-feedback_agent_graph = g.compile()
+g.add_node(check_if_solution_is_leaked)
+g.add_edge(n(check_if_solution_is_leaked), END)
+coding_stage_graph = g.compile()

@@ -165,7 +165,9 @@ async def init_interview(interview_info: dict):
     main_graph.invoke(
         input={
             "interview_question": interview_info["interview_question"],
+            "interview_question_md": interview_info["interview_question_md"],
             "interview_solution": interview_info["interview_solution"],
+            "interview_solution_md": interview_info["interview_solution_md"],
         },
         config={
             "configurable": {"thread_id": interview_id, "get_code_feedback": True},
@@ -245,8 +247,8 @@ async def get_interview_questions():
     for file_path in scraped_data_path.glob("*.json"):
         with open(file_path, "r") as f:
             data = json.load(f)
-            # only return questions that have a solution
-            if data["solution"]["content"]:
+            # TODO: refine more questions
+            if data.get("solution_md"):
                 questions.append(data)
 
     return questions
