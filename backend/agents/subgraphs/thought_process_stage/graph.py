@@ -9,10 +9,34 @@ from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
 
 from agents.llm_models import chat_model
-from agents.subgraphs.thought_process_stage.prompts import default_system_message
+from agents.subgraphs.thought_process_stage.prompts import default_system_message, IDENTIFY_USER_APPROACH, GIVE_APPROACH_SPEIFIC_HINT
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from pydantic import BaseModel, Field
 
+
+def is_user_approach_known(state: OverallState):
+    print("\n>>> CONDITIONAL EDGE: is_user_approach_known")
+    if state.user_approach:
+        return n(approach_based_feedback)
+    else:
+        return n(thought_process)
+
+def approach_based_feedback(state: OverallState):
+    print("\n>>> NODE: approach_based_feedback")
+
+    response = (
+        ChatPromptTemplate.from_template(GIVE_APPROACH_SPEIFIC_HINT) | chat_model
+    ).invoke(
+        {
+            "question": state.interview_question,
+            "approach": f"{state.user_approach['title']}: {state.user_approach['approach']}",
+        }
+    )
+
+    return {
+        "message_from_interviewer": response.content,
+        "messages": [AIMessage(content=response.content)],
+    }
 
 def thought_process(state: OverallState):
     print("\n>>> NODE: thought_process")
@@ -25,10 +49,26 @@ def thought_process(state: OverallState):
 
     reply = chain.invoke({})
 
-    return {
-        "message_from_interviewer": reply,
-        "messages": [AIMessage(content=reply)],
-    }
+    approach_response = (
+        ChatPromptTemplate.from_template(IDENTIFY_USER_APPROACH) | chat_model
+    ).invoke(
+        {
+            "question": state.interview_question,
+            "approaches": state.interview_approach
+        }
+    )
+
+    if approach_response.content != "UNKNOWN":
+        return {
+            "message_from_interviewer": reply,
+            "messages": [AIMessage(content=reply)],
+            "user_approach": approach_response.content
+        }
+    else:
+        return {
+            "message_from_interviewer": reply,
+            "messages": [AIMessage(content=reply)],
+        }
 
 
 def is_greeting_finished(state: OverallState):
@@ -122,13 +162,18 @@ g.add_node(n(is_greeting_finished), RunnablePassthrough())
 g.add_conditional_edges(
     n(is_greeting_finished),
     is_greeting_finished,
-    [n(greeting), n(thought_process)],
+    [n(greeting), n(is_user_approach_known)],
 )
+
+g.add_node(is_user_approach_known)
+g.add_node(approach_based_feedback)
+g.add_conditional_edges(n(is_user_approach_known), is_user_approach_known, [n(approach_based_feedback), n(thought_process)])
 
 g.add_node(greeting)
 g.add_edge(n(greeting), END)
 
 g.add_node(thought_process)
 g.add_edge(n(thought_process), END)
+g.add_edge(n(approach_based_feedback), END)
 
 thought_process_stage_graph = g.compile()

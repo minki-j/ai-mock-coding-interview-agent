@@ -33,6 +33,7 @@ class InputState(BaseModel):
     interview_question: str = Field(default="")
     interview_question_md: str = Field(default="")
     interview_solution: str = Field(default="")
+    interview_approach: list[dict] = Field(default=[])
     interview_solution_md: str = Field(default="")
     start_date: str = Field(default="")
 
@@ -51,6 +52,7 @@ class OverallState(InputState, OutputState):
 
     # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")
+    user_approach: dict = Field(default="")
     test_result: str = Field(default="")
 
     messages: Annotated[list[AnyMessage], add_messages] = Field(

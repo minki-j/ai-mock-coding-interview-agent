@@ -5,8 +5,17 @@ import random
 import requests
 from typing import Dict
 from dotenv import load_dotenv
-from problem_names import PROBLEM_NAMES
 from markdownify import markdownify
+
+from problem_names import PROBLEM_NAMES
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-latest")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", 0.7))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 def populate_codes_in_solution(solution: str):
     keyword = ["https://leetcode.com/playground"]
@@ -43,8 +52,36 @@ def populate_codes_in_solution(solution: str):
             time.sleep(random.uniform(1, 2))
         except Exception as e:
             print(f"Failed to fetch code from {url}: {str(e)}")
-    
     return solution
+
+
+def extract_approach_from_solution(solution: str) -> str:
+    chat_model = ChatOpenAI(
+        model=DEFAULT_MODEL,
+        api_key=OPENAI_API_KEY,
+        temperature=LLM_TEMPERATURE,
+    )
+    "Convert the solution to structured output."
+
+    response = (
+        ChatPromptTemplate.from_template("""You are given a detailed solution document to a coding problem. The document contains one or many approaches  to solve the problem. Each approach will potentially have a title, description, algorithm, python code, time complexity analysis and some followup questions. Your task is to convert this blob of document into structured JSON output.
+    
+<document>
+{solution}
+</document
+    
+Output a JSON array where each object represents an approach. Each approach object should have ONLY the following keys
+title: Name of the approach. Do not include text like "Approach 1" in the title.
+approach: Methodology to solve the problem.
+analysis: Time and space complexity of the approach including their explanations.
+""") | chat_model
+    ).invoke(
+        {
+            "solution": solution,
+        }
+    )
+
+    return response.content.strip("`JjSsOoNn")
 
 def main():
     for problem_name in PROBLEM_NAMES:
@@ -57,6 +94,7 @@ def main():
         original_solution = data["solution"]["content"]
         if original_solution:
             data["solution"]["content"] = populate_codes_in_solution(original_solution)
+            data["approaches"] = extract_approach_from_solution(original_solution)
 
         data["content_md"] = markdownify(data["content"])
         if data.get("solution") and data["solution"].get("content"):
