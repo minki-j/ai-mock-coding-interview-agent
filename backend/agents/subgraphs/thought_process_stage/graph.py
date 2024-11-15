@@ -43,8 +43,16 @@ def greeting(state: OverallState):
     print("\n>>> NODE: greeting")
     first_msg = f"Hello! {state.interviewee_name} How are you doing today?"
     greeting_messages = [
-        "First, let me explain the structure of the interview.\nThere are two steps: thought process and actual coding part. In the thought process stage, you will walk me through your thought process on how to solve the problem.\nDoes it make sense?",
-        "Great! Let's begin.\nPlease read the interview question above carefully, and explain how you would approach the problem. Feel free to ask clarifying questions at any point.",
+        """Let me explain the structure of the interview. There are two parts:
+
+1. Thought Process Phase: In this stage, you’ll walk me through how you would approach solving the problem.
+
+2. Coding Phase: In this stage, you will implement your solution based on the approach discussed.
+
+Does this make sense?""",
+        """Great! Let's begin the thought process phase.
+
+Please read the interview question above carefully, and explain how you would approach the problem. Feel free to ask clarifying questions at any point 😁""",
     ]
 
     if len(state.messages) == 0:
@@ -52,7 +60,7 @@ def greeting(state: OverallState):
         return {
             "message_from_interviewer": greeting_msg,
             "messages": [
-                default_system_message(state.interview_question),
+                default_system_message(state.interview_question_md),
                 AIMessage(content=greeting_msg),
             ],
         }
@@ -66,15 +74,11 @@ def greeting(state: OverallState):
         chain = (
             ChatPromptTemplate.from_template(
                 """
-You just started interviewing a candidate for a software engineering role. You have two options:
-## Option 1. Use the predefined reply.
-If the conversation flows as expected so that the predefined reply fits in the conversation, you can use it. However, the predefined reply may miss some reactions or tones. You can amend it to fit in the conversation.
-## Option 2. Ignore the predefined reply and reply freely.
-Sometimes the interviewee might ask a question that is not covered in the predefined reply. Or the conversation might go in a different direction. In that case, you should ignore the predefined reply and reply freely. However, if the conversation is derailed too much, you should gently guide the conversation back to the predefined reply.
+You just started interviewing a candidate for a software engineering role. There are three stages in this interview: greeting, thought process, and coding. You are currently in the greeting stage. You are going to greet the candidate and introduce how the interview will work. In thought process stage, you will ask the candidate to explain how they would approach solving the problem, and the candidate will answer through chat. In coding stage, the candidate will write code in the code editor that is shown in the right panel. The interview question is displayed above this chat panel.No 
 
 ---
 
-## predefined_reply
+Now you have to decide which option to use to reply to the candidate. Options are:slook 
 {predefined_reply}
 
 ---

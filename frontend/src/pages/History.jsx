@@ -6,16 +6,13 @@ const History = () => {
   const [interviews, setInterviews] = useState([]);
 
   useEffect(() => {
-    console.log("fetching history");
     const user_id = sessionStorage.getItem("userId");
-    console.log("user_id", user_id);
     if (!user_id) {
       navigate("/login");
     }
     const fetchHistory = async () => {
       const res = await fetch(`/get_history/${user_id}`);
       const data = await res.json();
-      console.log("get_history: ", data);
       setInterviews(data);
     };
     fetchHistory();
@@ -64,11 +61,12 @@ const History = () => {
               className="border p-4 rounded-lg hover:bg-gray-50 cursor-pointer"
               onClick={() => navigate(`/interview/${interview.id}`)}
             >
-              <h2 className="font-semibold">{interview.title}</h2>
-              {/* <p className="text-gray-600 text-sm">
-                Last visited:{" "}
-                {new Date(interview.last_visited).toLocaleString()}
-              </p> */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                <h2 className="font-semibold">{interview.title}</h2>
+                <p className="text-gray-600 text-sm">
+                  Started at {interview.start_date}
+                </p>
+              </div>
             </li>
           ))}
         </ul>
