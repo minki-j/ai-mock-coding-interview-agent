@@ -19,6 +19,8 @@ THOUGHT_TIME_IN_MINUTES = 10  # 10 minutes
 # ===========================================
 #                REDUCER FUNCTIONS
 # ===========================================
+def replace_with_new_state(_, new):
+    return new
 
 
 # ===========================================
@@ -27,14 +29,16 @@ THOUGHT_TIME_IN_MINUTES = 10  # 10 minutes
 class InputState(BaseModel):
     interviewee_name: str = Field(default="")
     difficulty_level: Literal["easy", "medium", "hard"] = Field(default="easy")
+    interview_title: str = Field(default="")
     interview_question: str = Field(default="")
     interview_question_md: str = Field(default="")
     interview_solution: str = Field(default="")
     interview_solution_md: str = Field(default="")
+    start_date: str = Field(default="")
 
 
 class OutputState(BaseModel):
-    message_from_interviewer: str = Field(default="")
+    message_from_interviewer: Annotated[str, replace_with_new_state] = Field(default="")
 
 
 class OverallState(InputState, OutputState):
@@ -43,6 +47,7 @@ class OverallState(InputState, OutputState):
         default="greeting"
     )
     thought_process_summary: str = Field(default="")
+    debugging_result: str = Field(default="")
 
     # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")

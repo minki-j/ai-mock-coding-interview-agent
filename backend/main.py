@@ -164,10 +164,12 @@ async def init_interview(interview_info: dict):
 
     main_graph.invoke(
         input={
+            "interview_title": interview_info["interview_title"],
             "interview_question": interview_info["interview_question"],
             "interview_question_md": interview_info["interview_question_md"],
             "interview_solution": interview_info["interview_solution"],
             "interview_solution_md": interview_info["interview_solution_md"],
+            "start_date": interview_info["start_date"],
         },
         config={
             "configurable": {"thread_id": interview_id, "get_code_feedback": True},
@@ -268,8 +270,8 @@ async def get_history(user_id: str):
 
         interview = {}
         interview["id"] = interview_id
-        interview["title"] = state["interview_question"][:500]
-        interview["last_visited"] = "TO be implemented"
+        interview["title"] = state["interview_title"]
+        interview["start_date"] = state["start_date"]
 
         interviews.append(interview)
     return interviews
