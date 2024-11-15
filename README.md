@@ -33,3 +33,8 @@ docker compose exec frontend npm install jwt-decode
 
 After the services are running, you can access the app at `http://localhost:3001`.
 Since the local files are mounted into the container, any changes you make to the files will be reflected in the app.
+
+## Contributing
+
+If you want to add more questions, you can do so by adding the question to the `leetcode.json` file.
+Make sure to add the question to the correct category.
