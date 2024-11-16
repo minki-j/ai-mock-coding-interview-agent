@@ -1,0 +1,18 @@
+{
+  "content": "<p>Given an array of integers <code>nums</code> sorted in non-decreasing order, find the starting and ending position of a given <code>target</code> value.</p>\n\n<p>If <code>target</code> is not found in the array, return <code>[-1, -1]</code>.</p>\n\n<p>You must&nbsp;write an algorithm with&nbsp;<code>O(log n)</code> runtime complexity.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n<pre><strong>Input:</strong> nums = [5,7,7,8,8,10], target = 8\n<strong>Output:</strong> [3,4]\n</pre><p><strong class=\"example\">Example 2:</strong></p>\n<pre><strong>Input:</strong> nums = [5,7,7,8,8,10], target = 6\n<strong>Output:</strong> [-1,-1]\n</pre><p><strong class=\"example\">Example 3:</strong></p>\n<pre><strong>Input:</strong> nums = [], target = 0\n<strong>Output:</strong> [-1,-1]\n</pre>\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>0 &lt;= nums.length &lt;= 10<sup>5</sup></code></li>\n\t<li><code>-10<sup>9</sup>&nbsp;&lt;= nums[i]&nbsp;&lt;= 10<sup>9</sup></code></li>\n\t<li><code>nums</code> is a non-decreasing array.</li>\n\t<li><code>-10<sup>9</sup>&nbsp;&lt;= target&nbsp;&lt;= 10<sup>9</sup></code></li>\n</ul>\n",
+  "difficulty": "Medium",
+  "title": "Find First and Last Position of Element in Sorted Array",
+  "topicTags": [
+    {
+      "name": "Array"
+    },
+    {
+      "name": "Binary Search"
+    }
+  ],
+  "solution": {
+    "content": null
+  },
+  "content_md": "Given an array of integers `nums` sorted in non\\-decreasing order, find the starting and ending position of a given `target` value.\n\n\nIf `target` is not found in the array, return `[-1, -1]`.\n\n\nYou must write an algorithm with `O(log n)` runtime complexity.\n\n\n \n\n\n**Example 1:**\n\n\n\n```\nInput: nums = [5,7,7,8,8,10], target = 8\nOutput: [3,4]\n\n```\n**Example 2:**\n\n\n\n```\nInput: nums = [5,7,7,8,8,10], target = 6\nOutput: [-1,-1]\n\n```\n**Example 3:**\n\n\n\n```\nInput: nums = [], target = 0\nOutput: [-1,-1]\n\n```\n\n \n\n\n**Constraints:**\n\n\n* `0 <= nums.length <= 105`\n* `-109 <= nums[i] <= 109`\n* `nums` is a non\\-decreasing array.\n* `-109 <= target <= 109`\n\n\n",
+  "solution_md": null
+}

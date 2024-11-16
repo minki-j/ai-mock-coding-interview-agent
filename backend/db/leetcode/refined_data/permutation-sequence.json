@@ -1,0 +1,18 @@
+{
+  "content": "<p>The set <code>[1, 2, 3, ...,&nbsp;n]</code> contains a total of <code>n!</code> unique permutations.</p>\n\n<p>By listing and labeling all of the permutations in order, we get the following sequence for <code>n = 3</code>:</p>\n\n<ol>\n\t<li><code>&quot;123&quot;</code></li>\n\t<li><code>&quot;132&quot;</code></li>\n\t<li><code>&quot;213&quot;</code></li>\n\t<li><code>&quot;231&quot;</code></li>\n\t<li><code>&quot;312&quot;</code></li>\n\t<li><code>&quot;321&quot;</code></li>\n</ol>\n\n<p>Given <code>n</code> and <code>k</code>, return the <code>k<sup>th</sup></code> permutation sequence.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n<pre><strong>Input:</strong> n = 3, k = 3\n<strong>Output:</strong> \"213\"\n</pre><p><strong class=\"example\">Example 2:</strong></p>\n<pre><strong>Input:</strong> n = 4, k = 9\n<strong>Output:</strong> \"2314\"\n</pre><p><strong class=\"example\">Example 3:</strong></p>\n<pre><strong>Input:</strong> n = 3, k = 1\n<strong>Output:</strong> \"123\"\n</pre>\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>1 &lt;= n &lt;= 9</code></li>\n\t<li><code>1 &lt;= k &lt;= n!</code></li>\n</ul>\n",
+  "difficulty": "Hard",
+  "title": "Permutation Sequence",
+  "topicTags": [
+    {
+      "name": "Math"
+    },
+    {
+      "name": "Recursion"
+    }
+  ],
+  "solution": {
+    "content": null
+  },
+  "content_md": "The set `[1, 2, 3, ..., n]` contains a total of `n!` unique permutations.\n\n\nBy listing and labeling all of the permutations in order, we get the following sequence for `n = 3`:\n\n\n1. `\"123\"`\n2. `\"132\"`\n3. `\"213\"`\n4. `\"231\"`\n5. `\"312\"`\n6. `\"321\"`\n\n\nGiven `n` and `k`, return the `kth` permutation sequence.\n\n\n \n\n\n**Example 1:**\n\n\n\n```\nInput: n = 3, k = 3\nOutput: \"213\"\n\n```\n**Example 2:**\n\n\n\n```\nInput: n = 4, k = 9\nOutput: \"2314\"\n\n```\n**Example 3:**\n\n\n\n```\nInput: n = 3, k = 1\nOutput: \"123\"\n\n```\n\n \n\n\n**Constraints:**\n\n\n* `1 <= n <= 9`\n* `1 <= k <= n!`\n\n\n",
+  "solution_md": null
+}

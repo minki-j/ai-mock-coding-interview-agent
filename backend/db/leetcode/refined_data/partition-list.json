@@ -1,0 +1,18 @@
+{
+  "content": "<p>Given the <code>head</code> of a linked list and a value <code>x</code>, partition it such that all nodes <strong>less than</strong> <code>x</code> come before nodes <strong>greater than or equal</strong> to <code>x</code>.</p>\n\n<p>You should <strong>preserve</strong> the original relative order of the nodes in each of the two partitions.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n<img alt=\"\" src=\"https://assets.leetcode.com/uploads/2021/01/04/partition.jpg\" style=\"width: 662px; height: 222px;\" />\n<pre>\n<strong>Input:</strong> head = [1,4,3,2,5,2], x = 3\n<strong>Output:</strong> [1,2,2,4,3,5]\n</pre>\n\n<p><strong class=\"example\">Example 2:</strong></p>\n\n<pre>\n<strong>Input:</strong> head = [2,1], x = 2\n<strong>Output:</strong> [1,2]\n</pre>\n\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li>The number of nodes in the list is in the range <code>[0, 200]</code>.</li>\n\t<li><code>-100 &lt;= Node.val &lt;= 100</code></li>\n\t<li><code>-200 &lt;= x &lt;= 200</code></li>\n</ul>\n",
+  "difficulty": "Medium",
+  "title": "Partition List",
+  "topicTags": [
+    {
+      "name": "Linked List"
+    },
+    {
+      "name": "Two Pointers"
+    }
+  ],
+  "solution": {
+    "content": null
+  },
+  "content_md": "Given the `head` of a linked list and a value `x`, partition it such that all nodes **less than** `x` come before nodes **greater than or equal** to `x`.\n\n\nYou should **preserve** the original relative order of the nodes in each of the two partitions.\n\n\n \n\n\n**Example 1:**\n\n\n![](https://assets.leetcode.com/uploads/2021/01/04/partition.jpg)\n\n```\n\nInput: head = [1,4,3,2,5,2], x = 3\nOutput: [1,2,2,4,3,5]\n\n```\n\n**Example 2:**\n\n\n\n```\n\nInput: head = [2,1], x = 2\nOutput: [1,2]\n\n```\n\n \n\n\n**Constraints:**\n\n\n* The number of nodes in the list is in the range `[0, 200]`.\n* `-100 <= Node.val <= 100`\n* `-200 <= x <= 200`\n\n\n",
+  "solution_md": null
+}
