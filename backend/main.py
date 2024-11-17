@@ -1,18 +1,17 @@
-import datetime
 import os
 import subprocess
 import tempfile
 import uuid
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 from agents.main_graph import main_graph
-from db.schema import Interview
+from bson import ObjectId
+from db.mongo import delete_many, find_many, find_one, insert_document
+from db.schema import LeetcodeQuestion
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from db.mongo import find_many, find_one, insert_document, delete_many
+from langchain_core.messages import AIMessage, HumanMessage
 from pydantic import BaseModel
-from bson import ObjectId
-from langchain_core.messages import SystemMessage, AIMessage, HumanMessage, AnyMessage
 
 app = FastAPI(title="Python Code Execution Service")
 
@@ -236,22 +235,27 @@ async def get_interview(id: str):
     )
 
 
-@app.get("/get_interview_questions")
+
+@app.get("/get_interview_questions", response_model=List[LeetcodeQuestion])
 async def get_interview_questions():
     import json
-    from pathlib import Path
 
-    scraped_data_path = Path("db/leetcode/scraped_data")
-    questions = []
+    with open("db/leetcode.json", "r", encoding="utf-8") as f:
+        questions = json.load(f)
 
-    for file_path in scraped_data_path.glob("*.json"):
-        with open(file_path, "r") as f:
-            data = json.load(f)
-            # TODO: refine more questions
-            if data.get("solution_md"):
-                questions.append(data)
-
+    questions = [LeetcodeQuestion(**question) for question in questions]
     return questions
+
+
+@app.get("/get_interview_question/{id}", response_model=LeetcodeQuestion)
+async def get_interview_question(id: str):
+    questions = await get_interview_questions()
+    question = next((question for question in questions if question.id == id), None)
+
+    if not question:
+        raise HTTPException(status_code=404, detail=f"Question with id {id} not found")
+
+    return question
 
 
 @app.get("/get_history/{user_id}")

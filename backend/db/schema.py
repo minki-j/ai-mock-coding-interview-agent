@@ -10,3 +10,11 @@ class Interview(BaseModel):
     final_solution: str
     test_result: str
     feedback: str
+
+
+class LeetcodeQuestion(BaseModel):
+    id: str
+    title: str
+    question: str
+    examples: list[str]
+    constraints: list[str]
