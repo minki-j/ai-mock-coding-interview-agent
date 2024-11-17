@@ -69,6 +69,46 @@ The service will be available at `http://localhost:8000`.
 }
 ```
 
+### Get All Interview Questions
+
+- **Endpoint**: `GET /get_interview_questions`
+- **Response**: List of LeetcodeQuestion objects
+```json
+[
+    {
+        "id": "string",
+        "title": "string",
+        "difficulty": "string",
+        "question": "string",
+        "solution": "string"
+        // ... other LeetcodeQuestion fields
+    }
+]
+```
+
+### Get Specific Interview Question
+
+- **Endpoint**: `GET /get_interview_question/{id}`
+- **Parameters**:
+  - `id`: string (path parameter)
+- **Response**: Single LeetcodeQuestion object
+```json
+{
+    "id": "string",
+    "title": "string",
+    "difficulty": "string",
+    "question": "string",
+    "solution": "string"
+    // ... other LeetcodeQuestion fields
+}
+```
+- **Error Response** (404):
+```json
+{
+    "detail": "Question with id {id} not found"
+}
+```
+
 ### Health Check
 
 - **Endpoint**: `GET /health`
