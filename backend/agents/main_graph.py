@@ -18,11 +18,12 @@ from agents.subgraphs.final_assessment_stage.graph import final_assessment_stage
 
 
 def stage_router(state: OverallState) -> bool:
+    print("\n>>> NODE: stage_router")
+
     class ClassifierResponse(BaseModel):
         rationale: str = Field(description="The rationale for the decision.")
         should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
 
-    print("\n>>> NODE: stage_router")
     if state.stage == "greeting":
         return n(thought_process_stage_graph)
 

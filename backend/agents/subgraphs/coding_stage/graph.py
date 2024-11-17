@@ -195,4 +195,5 @@ g.add_edge(n(answer_general_question), n(check_if_solution_is_leaked))
 
 g.add_node(check_if_solution_is_leaked)
 g.add_edge(n(check_if_solution_is_leaked), END)
+
 coding_stage_graph = g.compile()

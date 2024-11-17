@@ -41,7 +41,7 @@ def is_greeting_finished(state: OverallState):
 
 def greeting(state: OverallState):
     print("\n>>> NODE: greeting")
-    first_msg = f"Hello! {state.interviewee_name} How are you doing today?"
+    first_msg = f"Hello! {state.interviewee_name} How are you doing today?\n\n💡If you already know how the interview works, you can answer 'skip'.)"
     greeting_messages = [
         """Let me explain the structure of the interview. There are two parts:
 
@@ -65,6 +65,15 @@ Please read the interview question above carefully, and explain how you would ap
             ],
         }
     else:
+        if len(state.messages) > 1 and state.messages[-1].content.strip().lower() == "skip":
+            greeting_msg_index = -1
+            return {
+                "message_from_interviewer": greeting_messages[greeting_msg_index],
+                "messages": [AIMessage(content=greeting_messages[greeting_msg_index])],
+                "greeting_msg_index": greeting_msg_index,
+                "stage": "greeting" if greeting_msg_index < len(greeting_messages) and greeting_msg_index >= 0 else "thought_process",
+        }
+
         class ContextualizedGreetingMessage(BaseModel):
             rationale: str = Field(description="The rationale for the decision.")
             should_use_predefined_reply: bool = Field(description="Return True if the predefined reply fits in the conversation. Otherwise, return False.")
@@ -92,10 +101,10 @@ Now you have to decide which option to use to reply to the candidate. Options ar
         stringified_messages = "\n\n".join(
             [f">>{message.type}: {message.content}" for message in state.messages[1:]]
         )
-
+        
         response = chain.invoke(
             {
-                "predefined_reply": greeting_messages[state.greeting_msg_index],
+                "predefined_reply": greeting_messages[state.greeting_msg_index ],
                 "conversation": stringified_messages,
             }
         )
