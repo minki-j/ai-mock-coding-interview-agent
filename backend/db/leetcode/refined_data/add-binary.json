@@ -1,0 +1,24 @@
+{
+  "content": "<p>Given two binary strings <code>a</code> and <code>b</code>, return <em>their sum as a binary string</em>.</p>\n\n<p>&nbsp;</p>\n<p><strong class=\"example\">Example 1:</strong></p>\n<pre><strong>Input:</strong> a = \"11\", b = \"1\"\n<strong>Output:</strong> \"100\"\n</pre><p><strong class=\"example\">Example 2:</strong></p>\n<pre><strong>Input:</strong> a = \"1010\", b = \"1011\"\n<strong>Output:</strong> \"10101\"\n</pre>\n<p>&nbsp;</p>\n<p><strong>Constraints:</strong></p>\n\n<ul>\n\t<li><code>1 &lt;= a.length, b.length &lt;= 10<sup>4</sup></code></li>\n\t<li><code>a</code> and <code>b</code> consist&nbsp;only of <code>&#39;0&#39;</code> or <code>&#39;1&#39;</code> characters.</li>\n\t<li>Each string does not contain leading zeros except for the zero itself.</li>\n</ul>\n",
+  "difficulty": "Easy",
+  "title": "Add Binary",
+  "topicTags": [
+    {
+      "name": "Math"
+    },
+    {
+      "name": "String"
+    },
+    {
+      "name": "Bit Manipulation"
+    },
+    {
+      "name": "Simulation"
+    }
+  ],
+  "solution": {
+    "content": null
+  },
+  "content_md": "Given two binary strings `a` and `b`, return *their sum as a binary string*.\n\n\n \n\n\n**Example 1:**\n\n\n\n```\nInput: a = \"11\", b = \"1\"\nOutput: \"100\"\n\n```\n**Example 2:**\n\n\n\n```\nInput: a = \"1010\", b = \"1011\"\nOutput: \"10101\"\n\n```\n\n \n\n\n**Constraints:**\n\n\n* `1 <= a.length, b.length <= 104`\n* `a` and `b` consist only of `'0'` or `'1'` characters.\n* Each string does not contain leading zeros except for the zero itself.\n\n\n",
+  "solution_md": null
+}

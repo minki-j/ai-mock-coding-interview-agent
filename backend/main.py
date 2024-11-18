@@ -243,10 +243,10 @@ async def get_interview_questions():
     import json
     from pathlib import Path
 
-    scraped_data_path = Path("db/leetcode/scraped_data")
+    data_path = Path("db/leetcode/refined_data")
     questions = []
 
-    for file_path in scraped_data_path.glob("*.json"):
+    for file_path in data_path.glob("*.json"):
         with open(file_path, "r") as f:
             data = json.load(f)
             # TODO: refine more questions
