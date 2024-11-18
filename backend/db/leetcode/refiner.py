@@ -145,7 +145,7 @@ analysis: Time and space complexity of the approach including their explanations
         }
     )
 
-    return response.content.strip("`JjSsOoNn")
+    return json.loads(response.content.strip("`JjSsOoNn\n "), strict=False)
 
 def main():
     logging.basicConfig(
