@@ -252,6 +252,15 @@ async def get_interview_question(id: str):
     questions = await get_interview_questions()
     question = next((question for question in questions if question.id == id), None)
 
+    # also need to load the prep file
+    try:
+        with open(f"db/prep/{id}.py", "r", encoding="utf-8") as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        lines = []
+
+    question.prep_code = lines
+
     if not question:
         raise HTTPException(status_code=404, detail=f"Question with id {id} not found")
 
