@@ -43,9 +43,10 @@ class OutputState(BaseModel):
 
 class OverallState(InputState, OutputState):
     greeting_msg_index: int = Field(default=0)
-    stage: Literal["greeting", "thought_process", "coding", "assessment"] = Field(
+    stage: Literal["greeting", "thought_process", "main", "assessment"] = Field(
         default="greeting"
     )
+    main_stage_step: Literal["coding", "debugging", "algorithmic_analysis"] = Field(default="coding")
     thought_process_summary: str = Field(default="")
     debugging_result: str = Field(default="")
 

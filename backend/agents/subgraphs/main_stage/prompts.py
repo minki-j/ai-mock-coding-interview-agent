@@ -102,42 +102,7 @@ Keep the key components of the feedback but eliminate solution revealing details
 """
 
 
-FIRST_REPLY_PROMPT = """
-You are interviewing a candidate for a software engineering role. There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
-You've been in the thought process stage and now it's time to move on to the actual coding stage. 
 
---- 
-
-## current conversation
-{messages}
-
---- 
-
-## predefined reply
-Great job on the thought process! Now, let’s dive into coding:
-1. Use the code editor on the right to start implementing your ideas.
-2. Feel free to adjust your plan, but let me know here if you do.
-3. You can ask for feedback at any stage—I’ll provide tips without giving away the full solution.
-4. If you need any clarification, just ask.
-Alright, let’s start coding!
-
----
-
-Modify the predefined reply to fit in the conversation. Only return the modified reply without any other text such as "Here is the modified reply:" or anything like that.
-"""
-
-THOUGHT_PROCESS_SUMMARY_PROMPT = """
-Summarize the thought process of the candidate. Focus on the user's plan or thoughts on how to solve the problem. Don't include miscellaneous details. 
-
----
-
-## thought process conversation
-{messages}
-
----
-
-Only return the summary without any other text such as "Here is the summary:" or anything like that.
-"""
 
 USER_INTENT_CLASSIFIER_PROMPT = """
 You are an expert at understanding user's intent. Detect the user's intent from the last message of the conversation.

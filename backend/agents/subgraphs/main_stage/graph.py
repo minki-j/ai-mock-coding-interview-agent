@@ -12,9 +12,13 @@ from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from agents.state_schema import OverallState
 from agents.llm_models import chat_model
 
-from agents.subgraphs.coding_stage import prompts
+from agents.subgraphs.main_stage import prompts
 
-from agents.subgraphs.code_feedback_agent.graph import code_feedback_agent_graph
+from agents.subgraphs.main_stage.coding.graph import coding_step_graph
+from agents.subgraphs.main_stage.debugging.graph import debugging_step_graph
+from agents.subgraphs.main_stage.algorithmic_analysis.graph import (
+    algorithmic_analysis_step_graph,
+)
 
 
 def answer_general_question(state: OverallState):
@@ -44,6 +48,9 @@ def check_if_solution_is_leaked(state: OverallState):
     print("\n>>> NODE: check_if_solution_is_leaked")
 
     class SolutionEliminationResponse(BaseModel):
+        rationale: str = Field(
+            description="Think out loud and step by step about whether the solution is revealed in the feedback."
+        )
         is_solution_revealed: bool = Field(
             description="Whether the solution is revealed in the feedback."
         )
@@ -100,95 +107,55 @@ def user_intent_classifier(state: OverallState):
     )
 
     if response.user_intent == Intent.CODE_FEEDBACK:
-        return n(code_feedback_agent_graph)
+        return n(main_stage_step_router)
     elif response.user_intent == Intent.GENERAL_QUESTION:
         return n(answer_general_question)
     else:
         raise ValueError(f"Invalid user intent: {response.user_intent}")
 
 
-def just_started_feedback_agent(state: OverallState):
-    if state.stage != "coding":
-        return "parallel_execution"
-    return n(user_intent_classifier)
-
-
-def generate_first_reply(state: OverallState):
-    first_reply = (
-        ChatPromptTemplate.from_template(prompts.FIRST_REPLY_PROMPT)
-        | chat_model
-        | StrOutputParser()
-    ).invoke(
-        {
-            "messages": "\n\n".join(
-                [
-                    f">>{message.type.upper()}: {message.content}"
-                    for message in state.messages[1:]
-                ]
-            )
-        }
-    )
-
-    return {
-        "stage": "coding",
-        "message_from_interviewer": first_reply,
-        "messages": [AIMessage(content=first_reply)],
-    }
-
-
-def summarize_thought_process(state: OverallState):
-    thought_process_summary = (
-        ChatPromptTemplate.from_template(prompts.THOUGHT_PROCESS_SUMMARY_PROMPT)
-        | chat_model
-        | StrOutputParser()
-    ).invoke(
-        {
-            "messages": "\n\n".join(
-                [
-                    f">>{message.type.upper()}: {message.content}"
-                    for message in state.messages
-                ]
-            )
-        }
-    )
-    return {
-        "thought_process_summary": thought_process_summary,
-    }
+def main_stage_step_router(state: OverallState):
+    print("\n>>> NODE: main_stage_step_router")
+    if state.main_stage_step == "coding":
+        return n(coding_step_graph)
+    elif state.main_stage_step == "debugging":
+        return n(debugging_step_graph)
+    elif state.main_stage_step == "algorithmic_analysis":
+        return n(algorithmic_analysis_step_graph)
+    else:
+        raise ValueError(f"Invalid main stage step: {state.main_stage_step}")
 
 
 g = StateGraph(OverallState)
 
-g.add_edge(START, n(just_started_feedback_agent))
-
-g.add_node(n(just_started_feedback_agent), RunnablePassthrough())
-g.add_conditional_edges(
-    n(just_started_feedback_agent),
-    just_started_feedback_agent,
-    [n(user_intent_classifier), "parallel_execution"],
-)
-
-g.add_node("parallel_execution", RunnablePassthrough())
-g.add_edge("parallel_execution", n(generate_first_reply))
-g.add_edge("parallel_execution", n(summarize_thought_process))
-
-g.add_node(generate_first_reply)
-g.add_edge(n(generate_first_reply), "rendezvous")
-
-g.add_node(summarize_thought_process)
-g.add_edge(n(summarize_thought_process), "rendezvous")
-
-g.add_node("rendezvous", RunnablePassthrough())
-g.add_edge("rendezvous", END)
+g.add_edge(START, n(user_intent_classifier))
 
 g.add_node(n(user_intent_classifier), RunnablePassthrough())
 g.add_conditional_edges(
     n(user_intent_classifier),
     user_intent_classifier,
-    [n(code_feedback_agent_graph), n(answer_general_question)],
+    [n(main_stage_step_router), n(answer_general_question)],
 )
 
-g.add_node(n(code_feedback_agent_graph), code_feedback_agent_graph)
-g.add_edge(n(code_feedback_agent_graph), n(check_if_solution_is_leaked))
+g.add_node(n(main_stage_step_router), RunnablePassthrough())
+g.add_conditional_edges(
+    n(main_stage_step_router),
+    main_stage_step_router,
+    [
+        n(coding_step_graph),
+        n(debugging_step_graph),
+        n(algorithmic_analysis_step_graph),
+    ],
+)
+
+g.add_node(n(coding_step_graph), coding_step_graph)
+g.add_edge(n(coding_step_graph), n(check_if_solution_is_leaked))
+
+g.add_node(n(debugging_step_graph), debugging_step_graph)
+g.add_edge(n(debugging_step_graph), n(check_if_solution_is_leaked))
+
+g.add_node(n(algorithmic_analysis_step_graph), algorithmic_analysis_step_graph)
+g.add_edge(n(algorithmic_analysis_step_graph), n(check_if_solution_is_leaked))
 
 g.add_node(n(answer_general_question), answer_general_question)
 g.add_edge(n(answer_general_question), n(check_if_solution_is_leaked))
@@ -196,4 +163,4 @@ g.add_edge(n(answer_general_question), n(check_if_solution_is_leaked))
 g.add_node(check_if_solution_is_leaked)
 g.add_edge(n(check_if_solution_is_leaked), END)
 
-coding_stage_graph = g.compile()
+main_stage_graph = g.compile()
