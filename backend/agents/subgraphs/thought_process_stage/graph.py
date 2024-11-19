@@ -19,12 +19,12 @@ from pydantic import BaseModel, Field
 def is_user_approach_known(state: OverallState):
     print("\n>>> CONDITIONAL EDGE: is_user_approach_known")
     if state.user_approach:
-        return n(approach_based_feedback)
+        return n(approach_based_reply)
     else:
-        return n(thought_process)
+        return n(general_reply)
 
-def approach_based_feedback(state: OverallState):
-    print("\n>>> NODE: approach_based_feedback")
+def approach_based_reply(state: OverallState):
+    print("\n>>> NODE: approach_based_reply")
 
     print(f"\n>>>NODE: {state.user_approach}")
     response = (
@@ -83,8 +83,8 @@ def detect_user_approach(state: OverallState):
 
     return {"user_approach": json.dumps(user_approach_dict)}
 
-def thought_process(state: OverallState):
-    print("\n>>> NODE: thought_process")
+def general_reply(state: OverallState):
+    print("\n>>> NODE: general_reply")
 
     chain = (
         ChatPromptTemplate.from_messages(state.messages)
@@ -207,14 +207,14 @@ g.add_node(detect_user_approach)
 g.add_edge(n(detect_user_approach), n(is_user_approach_known))
 
 g.add_node(n(is_user_approach_known), RunnablePassthrough())
-g.add_node(approach_based_feedback)
-g.add_conditional_edges(n(is_user_approach_known), is_user_approach_known, [n(approach_based_feedback), n(thought_process)])
+g.add_node(approach_based_reply)
+g.add_conditional_edges(n(is_user_approach_known), is_user_approach_known, [n(approach_based_reply), n(general_reply)])
 
 g.add_node(greeting)
 g.add_edge(n(greeting), END)
 
-g.add_node(thought_process)
-g.add_edge(n(thought_process), END)
-g.add_edge(n(approach_based_feedback), END)
+g.add_node(general_reply)
+g.add_edge(n(general_reply), END)
+g.add_edge(n(approach_based_reply), END)
 
 thought_process_stage_graph = g.compile()
