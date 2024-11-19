@@ -24,21 +24,19 @@ Here is the interview question:
 
 IDENTIFY_USER_APPROACH = """You are a seasoned senior software engineer interviewing candiate software engineer. You want to first gauge which approach the user is taking to solve the given question. You are given the coding question as text, and all the approaches as JSON objects. Your task is to look at the conversation and identify which approach the user is taking.
 
-<question>
+<interview_question>
 {question}
-</question>
+</interview_question>
 
 <approaches>
 {approaches}
 </approaches>
 
-Here is a brief conversation between you and the user
+Here is a brief conversation between you and the candidate
 
 <conversation>
 {conversation}
 </conversation>
-
-Use the above conversation and output the approach which best matches the user's ideas. Output the selected JSON approach object. If the approach is not clear or none of the approaches matches the user's thought, output "UNKNOWN".
 """
 
 

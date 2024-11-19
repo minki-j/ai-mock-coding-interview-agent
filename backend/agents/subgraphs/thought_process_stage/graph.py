@@ -1,5 +1,6 @@
 import json
 import os
+from enum import Enum
 from varname import nameof as n
 
 from langgraph.graph import START, END, StateGraph
@@ -41,6 +42,47 @@ def approach_based_feedback(state: OverallState):
         "messages": [AIMessage(content=response.content.strip("ai: "))],
     }
 
+def detect_user_approach(state: OverallState):
+    print("\n>>> NODE: detect_user_approach")
+
+    Approach = Enum(
+        "Approach",
+        {
+            "UNKNOWN": "UNKNOWN",
+            **{
+                approach["title"]: approach["title"]
+                for approach in state.interview_approaches
+            },
+        },
+    )
+
+    IdentifyUserApproachResponse = type(
+        "IdentifyUserApproachResponse",
+        (BaseModel,),
+        {
+            "__annotations__": {"approach": Approach},
+            "approach": Field()
+        }
+    )
+
+    approach_enum = (
+        ChatPromptTemplate.from_template(IDENTIFY_USER_APPROACH)
+        | chat_model.with_structured_output(IdentifyUserApproachResponse)
+    ).invoke(
+        {
+            "question": state.interview_question,
+            "approaches": state.interview_approaches,
+            "conversation": state.stringify_messages(),
+        }
+    ).approach
+
+    user_approach_dict = next((approach for approach in state.interview_approaches if approach['title'] == approach_enum.value), None)
+
+    if user_approach_dict is None:
+        raise ValueError(f"Approach {approach_enum.value} not found in {state.interview_approaches}")
+
+    return {"user_approach": json.dumps(user_approach_dict)}
+
 def thought_process(state: OverallState):
     print("\n>>> NODE: thought_process")
 
@@ -52,29 +94,10 @@ def thought_process(state: OverallState):
 
     reply = chain.invoke({})
 
-    approach_response = (
-        ChatPromptTemplate.from_template(IDENTIFY_USER_APPROACH) | chat_model
-    ).invoke(
-        {
-            "question": state.interview_question,
-            "approaches": state.interview_approaches,
-            "conversation": state.stringify_messages()
-        }
-    )
-
-    approach_used = approach_response.content.strip("`JjSsOoNn").strip().strip('"').strip()
-    if approach_used != "UNKNOWN":
-        print(f"\nNODE thought_process {approach_used}")
-        return {
-            "message_from_interviewer": reply,
-            "messages": [AIMessage(content=reply)],
-            "user_approach": approach_used
-        }
-    else:
-        return {
-            "message_from_interviewer": reply,
-            "messages": [AIMessage(content=reply)],
-        }
+    return {
+        "message_from_interviewer": reply,
+        "messages": [AIMessage(content=reply)],
+    }
 
 
 def is_greeting_finished(state: OverallState):
@@ -82,7 +105,7 @@ def is_greeting_finished(state: OverallState):
     if state.stage == "greeting":
         return n(greeting)
     else:
-        return n(is_user_approach_known)
+        return n(detect_user_approach)
 
 
 def greeting(state: OverallState):
@@ -177,8 +200,11 @@ g.add_node(n(is_greeting_finished), RunnablePassthrough())
 g.add_conditional_edges(
     n(is_greeting_finished),
     is_greeting_finished,
-    [n(greeting), n(is_user_approach_known)],
+    [n(greeting), n(detect_user_approach)],
 )
+
+g.add_node(detect_user_approach)
+g.add_edge(n(detect_user_approach), n(is_user_approach_known))
 
 g.add_node(n(is_user_approach_known), RunnablePassthrough())
 g.add_node(approach_based_feedback)
