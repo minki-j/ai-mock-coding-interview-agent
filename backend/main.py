@@ -170,6 +170,7 @@ async def init_interview(interview_info: dict):
             "interview_solution": interview_info["interview_solution"],
             "interview_solution_md": interview_info["interview_solution_md"],
             "start_date": interview_info["start_date"],
+            "interview_approaches": interview_info["interview_approaches"],
         },
         config={
             "configurable": {"thread_id": interview_id, "get_code_feedback": True},

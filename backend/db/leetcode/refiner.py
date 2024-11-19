@@ -3,10 +3,23 @@ import json
 import time
 import random
 import requests
+from typing import Dict
+from dotenv import load_dotenv
 from problem_names import PROBLEM_NAMES
 from markdownify import markdownify
 from tqdm import tqdm
 import logging
+
+
+from problem_names import PROBLEM_NAMES
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "claude-3-5-sonnet-latest")
+LLM_TEMPERATURE = float(os.getenv("LLM_TEMPERATURE", 0.7))
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 # Get the directory of the current file
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -71,7 +84,6 @@ def populate_codes_in_solution(solution: str, problem_name: str):
             time.sleep(random.uniform(2, 4))
         except Exception as e:
             logging.error(f"Failed to fetch code from {url}: {str(e)}")
-    
     return solution, code_snippets
 
 def fetch_code_via_graphql(session, playground_id):
@@ -107,6 +119,34 @@ def fetch_code_via_graphql(session, playground_id):
         logging.error(f"GraphQL error: {str(e)}")
         return None, None
 
+
+def extract_approach_from_solution(solution: str) -> str:
+    chat_model = ChatOpenAI(
+        model=DEFAULT_MODEL,
+        api_key=OPENAI_API_KEY,
+        temperature=LLM_TEMPERATURE,
+    )
+
+    response = (
+        ChatPromptTemplate.from_template("""You are given a detailed solution document to a coding problem. The document contains one or many approaches  to solve the problem. Each approach will potentially have a title, description, algorithm, python code, time complexity analysis and some followup questions. Your task is to convert this blob of document into structured JSON output.
+    
+<document>
+{solution}
+</document
+    
+Output a JSON array where each object represents an approach. Each approach object should have ONLY the following keys
+title: Name of the approach. Do not include text like "Approach 1" in the title.
+approach: Methodology to solve the problem.
+analysis: Time and space complexity of the approach including their explanations.
+""") | chat_model
+    ).invoke(
+        {
+            "solution": solution,
+        }
+    )
+
+    return json.loads(response.content.strip("`JjSsOoNn\n "), strict=False)
+
 def main():
     logging.basicConfig(
         level=logging.INFO,
@@ -129,6 +169,7 @@ def main():
                 logging.info(f"Successfully fetched {len(code_snippets)} code snippets for {problem_name}")
             else:
                 logging.info(f"No code snippets found for {problem_name}")
+            data["approaches"] = extract_approach_from_solution(original_solution)
 
         data["content_md"] = markdownify(data["content"])
         if data.get("solution") and data["solution"].get("content"):
