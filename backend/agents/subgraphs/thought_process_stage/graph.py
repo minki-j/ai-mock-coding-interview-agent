@@ -1,3 +1,4 @@
+import json
 import os
 from varname import nameof as n
 
@@ -24,18 +25,20 @@ def is_user_approach_known(state: OverallState):
 def approach_based_feedback(state: OverallState):
     print("\n>>> NODE: approach_based_feedback")
 
+    print(f"\n>>>NODE: {state.user_approach}")
     response = (
         ChatPromptTemplate.from_template(GIVE_APPROACH_SPEIFIC_HINT) | chat_model
     ).invoke(
         {
             "question": state.interview_question,
-            "approach": f"{state.user_approach['title']}: {state.user_approach['approach']}",
+            "approach": f"{state.user_approach}",
+            "conversation": state.stringify_messages()
         }
     )
 
     return {
-        "message_from_interviewer": response.content,
-        "messages": [AIMessage(content=response.content)],
+        "message_from_interviewer": response.content.strip("ai: "),
+        "messages": [AIMessage(content=response.content.strip("ai: "))],
     }
 
 def thought_process(state: OverallState):
@@ -54,15 +57,18 @@ def thought_process(state: OverallState):
     ).invoke(
         {
             "question": state.interview_question,
-            "approaches": state.interview_approach
+            "approaches": state.interview_approaches,
+            "conversation": state.stringify_messages()
         }
     )
 
-    if approach_response.content != "UNKNOWN":
+    approach_used = approach_response.content.strip("`JjSsOoNn").strip().strip('"').strip()
+    if approach_used != "UNKNOWN":
+        print(f"\nNODE thought_process {approach_used}")
         return {
             "message_from_interviewer": reply,
             "messages": [AIMessage(content=reply)],
-            "user_approach": approach_response.content
+            "user_approach": approach_used
         }
     else:
         return {
@@ -76,7 +82,7 @@ def is_greeting_finished(state: OverallState):
     if state.stage == "greeting":
         return n(greeting)
     else:
-        return n(thought_process)
+        return n(is_user_approach_known)
 
 
 def greeting(state: OverallState):
@@ -174,7 +180,7 @@ g.add_conditional_edges(
     [n(greeting), n(is_user_approach_known)],
 )
 
-g.add_node(is_user_approach_known)
+g.add_node(n(is_user_approach_known), RunnablePassthrough())
 g.add_node(approach_based_feedback)
 g.add_conditional_edges(n(is_user_approach_known), is_user_approach_known, [n(approach_based_feedback), n(thought_process)])
 

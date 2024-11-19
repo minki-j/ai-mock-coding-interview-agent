@@ -22,7 +22,7 @@ def stage_router(state: OverallState) -> bool:
 
     class ClassifierResponse(BaseModel):
         rationale: str = Field(description="The rationale for the decision.")
-        should_end_thought_process: bool = Field(description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False.")
+        should_end_thought_process: bool = Field(description="Return True if the candidate has arrived at a working approach for the problem which the interviewer has accepted or if the candidate wants to move on to the actual interview stage, otherwise return False.")
 
     if state.stage == "greeting":
         return n(thought_process_stage_graph)
@@ -36,16 +36,16 @@ def stage_router(state: OverallState) -> bool:
     chain = (
         ChatPromptTemplate.from_template(
             """
-You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
+You are interviewing a candidate for a software engineering role. There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
 The candidate is currently in the thought process stage. You need to decide if the candidate has provided enough thought process for the problem and can move on to the actual interview stage.
 
 ----
 
 Important rules:
-1. Even though the candiate didn't provide enough thought process, if the candidate wants to move on to the actual interview stage, you should let them.
-2. Criteria for enough thought process:
+1. Even though the candiate didn't provide enough thought process, if the candidate explicitly says they to move on to the actual interview stage, you should let them.
+2. Criteria for enough thought process (all should be met):
     - The candidate understood the problem correctly
-    - The candidate has some ideas on how to solve the problem
+    - The candidate and interview have finalized on one concrete approach on how to solve the problem, which the candidate will now implement
     - The candidate considered at least one edge case
 
 ----
@@ -57,14 +57,9 @@ Here is the current conversation:
         | chat_model.with_structured_output(ClassifierResponse)
     )
 
-    stringified_messages = "\n\n".join(
-        [
-            f">>{message.type.upper()}: {message.content}"
-            for message in state.messages[1:]
-        ]
-    )
-
-    if not chain.invoke({"messages": stringified_messages}).should_end_thought_process:
+    response = chain.invoke({"messages": state.stringify_messages()})
+    print(f"\n>>> NODE: stage_router {response}")
+    if not response.should_end_thought_process:
         return n(thought_process_stage_graph)
     else:
         return n(coding_stage_graph)
