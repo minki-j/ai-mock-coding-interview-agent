@@ -21,6 +21,7 @@ from agents.subgraphs.main_stage.algorithmic_analysis.graph import (
 )
 
 
+
 def answer_general_question(state: OverallState):
     print("\n>>> NODE: answer_general_question")
 
@@ -42,42 +43,6 @@ def answer_general_question(state: OverallState):
     return {
         "message_from_interviewer": reply.content,
     }
-
-
-def check_if_solution_is_leaked(state: OverallState):
-    print("\n>>> NODE: check_if_solution_is_leaked")
-
-    class SolutionEliminationResponse(BaseModel):
-        rationale: str = Field(
-            description="Think out loud and step by step about whether the solution is revealed in the feedback."
-        )
-        is_solution_revealed: bool = Field(
-            description="Whether the solution is revealed in the feedback."
-        )
-        amended_feedback: str = Field(
-            description="If solution is revealed, amend the feedback so that the solution is not revealed. If the solution is not revealed, return an empty string."
-        )
-
-    validation_result = (
-        ChatPromptTemplate.from_template(prompts.SOLUTION_ELIMINATION_PROMPT)
-        | chat_model.with_structured_output(SolutionEliminationResponse)
-    ).invoke(
-        {
-            "question": state.interview_question,
-            "solution": state.interview_solution,
-            "feedback": state.message_from_interviewer,
-        }
-    )
-
-    if validation_result.is_solution_revealed:
-        return {
-            "message_from_interviewer": validation_result.amended_feedback,
-            "messages": [AIMessage(content=validation_result.amended_feedback)],
-        }
-    else:
-        return {
-            "messages": [AIMessage(content=state.message_from_interviewer)],
-        }
 
 
 def user_intent_classifier(state: OverallState):
@@ -149,18 +114,16 @@ g.add_conditional_edges(
 )
 
 g.add_node(n(coding_step_graph), coding_step_graph)
-g.add_edge(n(coding_step_graph), n(check_if_solution_is_leaked))
+g.add_edge(n(coding_step_graph), END)
 
 g.add_node(n(debugging_step_graph), debugging_step_graph)
-g.add_edge(n(debugging_step_graph), n(check_if_solution_is_leaked))
+g.add_edge(n(debugging_step_graph), END)
 
 g.add_node(n(algorithmic_analysis_step_graph), algorithmic_analysis_step_graph)
-g.add_edge(n(algorithmic_analysis_step_graph), n(check_if_solution_is_leaked))
+g.add_edge(n(algorithmic_analysis_step_graph), END)
 
 g.add_node(n(answer_general_question), answer_general_question)
-g.add_edge(n(answer_general_question), n(check_if_solution_is_leaked))
+g.add_edge(n(answer_general_question), END)
 
-g.add_node(check_if_solution_is_leaked)
-g.add_edge(n(check_if_solution_is_leaked), END)
 
 main_stage_graph = g.compile()

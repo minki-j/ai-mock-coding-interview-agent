@@ -22,6 +22,8 @@ from agents.llm_models import chat_model
 from agents.subgraphs.main_stage.graph import main_stage_graph
 from agents.subgraphs.thought_process_stage.graph import thought_process_stage_graph
 from agents.subgraphs.final_assessment_stage.graph import final_assessment_stage_graph
+from agents.global_nodes.nodes import check_if_solution_is_leaked
+
 
 from agents import prompts
 
@@ -126,16 +128,19 @@ g.add_conditional_edges(
 )
 
 g.add_node(n(thought_process_stage_graph), thought_process_stage_graph)
-g.add_edge(n(thought_process_stage_graph), "end_of_loop")
+g.add_edge(n(thought_process_stage_graph), n(check_if_solution_is_leaked))
 
 g.add_node(initiate_main_stage)
 g.add_edge(n(initiate_main_stage), "end_of_loop")
 
 g.add_node(n(main_stage_graph), main_stage_graph)
-g.add_edge(n(main_stage_graph), "end_of_loop")
+g.add_edge(n(main_stage_graph), n(check_if_solution_is_leaked))
 
 g.add_node(n(final_assessment_stage_graph), final_assessment_stage_graph)
 g.add_edge(n(final_assessment_stage_graph), "end_of_loop")
+
+g.add_node(n(check_if_solution_is_leaked), check_if_solution_is_leaked)
+g.add_edge(n(check_if_solution_is_leaked), "end_of_loop")
 
 g.add_node("end_of_loop", RunnablePassthrough())
 g.add_edge("end_of_loop", n(stage_router))
