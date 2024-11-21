@@ -8,8 +8,6 @@ from langgraph.graph.message import AnyMessage, add_messages
 
 from agents.subgraphs.thought_process_stage.prompts import default_system_message
 
-INTERVIEW_TIME_IN_MINUTES = 60  # 45 minutes
-THOUGHT_TIME_IN_MINUTES = 10  # 10 minutes
 
 # ===========================================
 #                VARIABLE SCHEMA

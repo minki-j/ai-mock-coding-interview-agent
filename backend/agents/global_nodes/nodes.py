@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, RemoveMessage
 from pydantic import BaseModel, Field
 
 from agents.state_schema import OverallState
@@ -35,9 +35,12 @@ def check_if_solution_is_leaked(state: OverallState):
     if validation_result.is_solution_revealed:
         return {
             "message_from_interviewer": validation_result.amended_feedback,
-            "messages": [AIMessage(content=validation_result.amended_feedback)],
+            "messages": [
+                RemoveMessage(id=state.messages[-1].id),
+                AIMessage(content=validation_result.amended_feedback),
+            ],
         }
     else:
         return {
-            "messages": [AIMessage(content=state.message_from_interviewer)],
+            "message_from_interviewer": state.message_from_interviewer,
         }

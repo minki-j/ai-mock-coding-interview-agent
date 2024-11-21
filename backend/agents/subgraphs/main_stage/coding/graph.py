@@ -8,6 +8,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
+from langchain_core.messages import AIMessage
 
 from agents.llm_models import chat_model
 
@@ -19,7 +20,6 @@ class CodeFeedbackAgentPrivateState(BaseModel):
     interview_solution: str = Field(default="")
     code_editor_state: str = Field(default="")
 
-    debugging_result: str = Field(default="")
     assessment_result: str = Field(default="")
 
 
@@ -64,6 +64,7 @@ def generate_feedback(state: CodeFeedbackAgentPrivateState) -> OverallState:
 
     return {
         "message_from_interviewer": reply.content,
+        "messages": [reply],
     }
 
 

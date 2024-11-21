@@ -2,6 +2,7 @@ import os
 from varname import nameof as n
 from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Literal
 from langgraph.graph import START, END, StateGraph
 
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
@@ -19,7 +20,6 @@ from agents.subgraphs.main_stage.debugging.graph import debugging_step_graph
 from agents.subgraphs.main_stage.algorithmic_analysis.graph import (
     algorithmic_analysis_step_graph,
 )
-
 
 
 def answer_general_question(state: OverallState):
@@ -90,6 +90,42 @@ def main_stage_step_router(state: OverallState):
     else:
         raise ValueError(f"Invalid main stage step: {state.main_stage_step}")
 
+def should_move_to_next_stage(state: OverallState):
+    class NextStepResponse(BaseModel):
+        should_move_to_next_step: bool = Field(description="Whether to move to the next step or stay in the current step.")
+
+    response = (
+        ChatPromptTemplate.from_template(prompts.DECIDE_WHETHER_TO_MOVE_TO_NEXT_STEP)
+        | chat_model.with_structured_output(NextStepResponse)
+    ).invoke(
+        {
+            "messages": "\n\n".join(
+                [
+                    f">>{message.type.upper()}: {message.content}"
+                    for message in state.messages[-4:]
+                ]
+            ),
+            "code_editor_state": state.code_editor_state,
+            "current_step": state.main_stage_step,
+        }
+    )
+    if response.should_move_to_next_step:
+        if state.main_stage_step == "coding":
+            return {
+                "main_stage_step": "debugging",
+            }
+        elif state.main_stage_step == "debugging":
+            return {
+                "main_stage_step": "algorithmic_analysis",
+            }
+        elif state.main_stage_step == "algorithmic_analysis":
+            return {
+                "stage": "assessment",
+            }
+    else:
+        return {
+            "main_stage_step": state.main_stage_step,
+        }
 
 g = StateGraph(OverallState)
 
@@ -114,16 +150,18 @@ g.add_conditional_edges(
 )
 
 g.add_node(n(coding_step_graph), coding_step_graph)
-g.add_edge(n(coding_step_graph), END)
+g.add_edge(n(coding_step_graph), n(should_move_to_next_stage))
 
 g.add_node(n(debugging_step_graph), debugging_step_graph)
-g.add_edge(n(debugging_step_graph), END)
+g.add_edge(n(debugging_step_graph), n(should_move_to_next_stage))
 
 g.add_node(n(algorithmic_analysis_step_graph), algorithmic_analysis_step_graph)
-g.add_edge(n(algorithmic_analysis_step_graph), END)
+g.add_edge(n(algorithmic_analysis_step_graph), n(should_move_to_next_stage))
 
 g.add_node(n(answer_general_question), answer_general_question)
-g.add_edge(n(answer_general_question), END)
+g.add_edge(n(answer_general_question), n(should_move_to_next_stage))
 
+g.add_node(n(should_move_to_next_stage), should_move_to_next_stage)
+g.add_edge(n(should_move_to_next_stage), END)
 
 main_stage_graph = g.compile()
