@@ -22,7 +22,7 @@ def stage_router(state: OverallState) -> bool:
 
     class ClassifierResponse(BaseModel):
         rationale: str = Field(description="The rationale for the decision.")
-        proposed_stage: bool = Field(description="Output the name of the stage. Choose from 'thought', 'coding' or 'final assessment'.")
+        should_end_thought_process: bool = Field(description="Return True if the candidate has arrived at a working approach for the problem which the interviewer has accepted or if the candidate wants to move on to the actual interview stage, otherwise return False.")
 
     if state.stage == "greeting":
         return n(thought_process_stage_graph)
@@ -36,7 +36,7 @@ def stage_router(state: OverallState) -> bool:
     chain = (
         ChatPromptTemplate.from_template(
             """
-You are interviewing a candidate for a software engineering role. There are three stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem. C) Final Assessment stage: The last stage after coding, debugging and analysis.
+You are interviewing a candidate for a software engineering role. There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
 The candidate is currently in the thought process stage. You need to decide if the candidate has provided enough thought process for the problem and can move on to the actual interview stage.
 
 ----
@@ -47,9 +47,6 @@ Important rules:
     - The candidate understood the problem correctly
     - The candidate and interview have finalized on one concrete approach on how to solve the problem, which the candidate will now implement
     - The candidate considered at least one edge case
-3. Criteria to enter final assessment stage:
-    - The candidate has requested to end the interview or
-    - The interviewer has captured all signals necessary to make a good hiring judgement.
 
 ----
 
@@ -62,12 +59,10 @@ Here is the current conversation:
 
     response = chain.invoke({"messages": state.stringify_messages()})
     print(f"\n>>> NODE: stage_router {response}")
-    if response == 'thought':
+    if not response.should_end_thought_process:
         return n(thought_process_stage_graph)
-    elif response == 'coding':
+    else:
         return n(coding_stage_graph)
-    elif response == 'final assessment':
-        return n(final_assessment_stage_graph)
 
 g = StateGraph(OverallState, input=InputState, output=OutputState)
 g.add_edge(START, n(stage_router))
