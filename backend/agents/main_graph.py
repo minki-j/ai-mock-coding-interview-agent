@@ -43,7 +43,7 @@ def stage_router(state: OverallState) -> bool:
             )
 
         chain = ChatPromptTemplate.from_template(
-            prompts.USER_INTENT_CLASSIFIER_PROMPT
+            prompts.IS_THOUGHT_PROCESS_DONE
         ) | chat_model.with_structured_output(ClassifierResponse)
 
         stringified_messages = "\n\n".join(

@@ -1,4 +1,4 @@
-USER_INTENT_CLASSIFIER_PROMPT = """
+IS_THOUGHT_PROCESS_DONE = """
 You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
 The candidate is currently in the thought process stage. You need to decide if the candidate has provided enough thought process for the problem and can move on to the actual interview stage.
 
