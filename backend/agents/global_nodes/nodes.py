@@ -26,7 +26,7 @@ def check_if_solution_is_leaked(state: OverallState):
         | chat_model.with_structured_output(SolutionEliminationResponse)
     ).invoke(
         {
-            "question": state.interview_question,
+            "question": state.interview_question_md,
             "solution": state.interview_solution,
             "feedback": state.message_from_interviewer,
         }

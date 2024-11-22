@@ -41,7 +41,7 @@ Reply to the candidate's last message.
         | chat_model
     ).invoke(
         {
-            "interview_question": state.interview_question,
+            "interview_question": state.interview_question_md,
             "code_editor_state": state.code_editor_state,
             "messages": "\n\n".join(
                 [

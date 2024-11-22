@@ -125,5 +125,5 @@ The code that the candidate wrote:
 
 ---
 
-You are currently in {current_step} step. Decide whether to move to the next step or stay in the current step.
+You are currently in {current_step} step. Decide whether to move to the next step or stay in the current step. 
 """

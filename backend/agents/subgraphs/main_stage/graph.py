@@ -36,7 +36,7 @@ def answer_general_question(state: OverallState):
                 ]
             ),
             "code_editor_state": state.code_editor_state,
-            "interview_question": state.interview_question,
+            "interview_question": state.interview_question_md,
         }
     )
 
@@ -90,7 +90,8 @@ def main_stage_step_router(state: OverallState):
     else:
         raise ValueError(f"Invalid main stage step: {state.main_stage_step}")
 
-def should_move_to_next_stage(state: OverallState):
+def should_move_to_next_step(state: OverallState):
+    print("\n>>> NODE: should_move_to_next_step")
     class NextStepResponse(BaseModel):
         should_move_to_next_step: bool = Field(description="Whether to move to the next step or stay in the current step.")
 
@@ -150,18 +151,18 @@ g.add_conditional_edges(
 )
 
 g.add_node(n(coding_step_graph), coding_step_graph)
-g.add_edge(n(coding_step_graph), n(should_move_to_next_stage))
+g.add_edge(n(coding_step_graph), n(should_move_to_next_step))
 
 g.add_node(n(debugging_step_graph), debugging_step_graph)
-g.add_edge(n(debugging_step_graph), n(should_move_to_next_stage))
+g.add_edge(n(debugging_step_graph), n(should_move_to_next_step))
 
 g.add_node(n(algorithmic_analysis_step_graph), algorithmic_analysis_step_graph)
-g.add_edge(n(algorithmic_analysis_step_graph), n(should_move_to_next_stage))
+g.add_edge(n(algorithmic_analysis_step_graph), n(should_move_to_next_step))
 
 g.add_node(n(answer_general_question), answer_general_question)
-g.add_edge(n(answer_general_question), n(should_move_to_next_stage))
+g.add_edge(n(answer_general_question), n(should_move_to_next_step))
 
-g.add_node(n(should_move_to_next_stage), should_move_to_next_stage)
-g.add_edge(n(should_move_to_next_stage), END)
+g.add_node(n(should_move_to_next_step), should_move_to_next_step)
+g.add_edge(n(should_move_to_next_step), END)
 
 main_stage_graph = g.compile()

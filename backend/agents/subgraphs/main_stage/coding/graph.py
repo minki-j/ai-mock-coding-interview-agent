@@ -16,8 +16,8 @@ from . import prompts
 
 
 class CodeFeedbackAgentPrivateState(BaseModel):
-    interview_question: str = Field(default="")
-    interview_solution: str = Field(default="")
+    interview_question_md: str = Field(default="")
+    interview_solution_md: str = Field(default="")
     code_editor_state: str = Field(default="")
 
     assessment_result: str = Field(default="")
@@ -25,8 +25,8 @@ class CodeFeedbackAgentPrivateState(BaseModel):
 
 def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState:
     return {
-        "interview_question": state.interview_question,
-        "interview_solution": state.interview_solution,
+        "interview_question_md": state.interview_question_md,
+        "interview_solution_md": state.interview_solution_md,
         "code_editor_state": state.code_editor_state,
     }
 
@@ -38,8 +38,8 @@ def assess_code_with_correct_solution(state: CodeFeedbackAgentPrivateState):
         ChatPromptTemplate.from_template(prompts.ASSESSMENT_PROMPT) | chat_model
     ).invoke(
         {
-            "interview_question": state.interview_question,
-            "correct_solution": state.interview_solution,
+            "interview_question": state.interview_question_md,
+            "correct_solution": state.interview_solution_md,
             "user_solution": state.code_editor_state,
         }
     )
@@ -56,7 +56,7 @@ def generate_feedback(state: CodeFeedbackAgentPrivateState) -> OverallState:
         ChatPromptTemplate.from_template(prompts.FEEDBACK_PROMPT) | chat_model
     ).invoke(
         {
-            "interview_question": state.interview_question,
+            "interview_question": state.interview_question_md,
             "user_solution": state.code_editor_state,
             "assessment": state.assessment_result,
         }
