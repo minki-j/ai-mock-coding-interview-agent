@@ -8,27 +8,25 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
+from langchain_core.messages import AIMessage
 
 from agents.llm_models import chat_model
 
-from agents.subgraphs.code_feedback_agent import prompts
-
-from agents.subgraphs.debugging_agent.graph import debugging_agent_graph
+from . import prompts
 
 
 class CodeFeedbackAgentPrivateState(BaseModel):
-    interview_question: str = Field(default="")
-    interview_solution: str = Field(default="")
+    interview_question_md: str = Field(default="")
+    interview_solution_md: str = Field(default="")
     code_editor_state: str = Field(default="")
 
-    debugging_result: str = Field(default="")
     assessment_result: str = Field(default="")
 
 
 def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState:
     return {
-        "interview_question": state.interview_question,
-        "interview_solution": state.interview_solution,
+        "interview_question_md": state.interview_question_md,
+        "interview_solution_md": state.interview_solution_md,
         "code_editor_state": state.code_editor_state,
     }
 
@@ -40,8 +38,8 @@ def assess_code_with_correct_solution(state: CodeFeedbackAgentPrivateState):
         ChatPromptTemplate.from_template(prompts.ASSESSMENT_PROMPT) | chat_model
     ).invoke(
         {
-            "interview_question": state.interview_question,
-            "correct_solution": state.interview_solution,
+            "interview_question": state.interview_question_md,
+            "correct_solution": state.interview_solution_md,
             "user_solution": state.code_editor_state,
         }
     )
@@ -58,7 +56,7 @@ def generate_feedback(state: CodeFeedbackAgentPrivateState) -> OverallState:
         ChatPromptTemplate.from_template(prompts.FEEDBACK_PROMPT) | chat_model
     ).invoke(
         {
-            "interview_question": state.interview_question,
+            "interview_question": state.interview_question_md,
             "user_solution": state.code_editor_state,
             "assessment": state.assessment_result,
         }
@@ -66,6 +64,7 @@ def generate_feedback(state: CodeFeedbackAgentPrivateState) -> OverallState:
 
     return {
         "message_from_interviewer": reply.content,
+        "messages": [reply],
     }
 
 
@@ -74,19 +73,10 @@ g.add_edge(START, n(initiate_private_state))
 
 g.add_node(initiate_private_state)
 g.add_edge(n(initiate_private_state), n(assess_code_with_correct_solution))
-g.add_edge(n(initiate_private_state), n(debugging_agent_graph))
 
 g.add_node(assess_code_with_correct_solution)
-g.add_node(n(debugging_agent_graph), debugging_agent_graph)
 
 g.add_edge(n(assess_code_with_correct_solution), "rendezvous")
-g.add_edge(n(debugging_agent_graph), "receive_debugging_result")
-
-g.add_node(
-    "receive_debugging_result",
-    lambda state: print("receive_debugging_result: \n", state.debugging_result),
-)
-g.add_edge("receive_debugging_result", "rendezvous")
 
 g.add_node("rendezvous", RunnablePassthrough())
 g.add_edge("rendezvous", n(generate_feedback))
@@ -94,7 +84,7 @@ g.add_edge("rendezvous", n(generate_feedback))
 g.add_node(generate_feedback)
 g.add_edge(n(generate_feedback), END)
 
-code_feedback_agent_graph = g.compile()
+coding_step_graph = g.compile()
 
-with open("./agents/graph_diagrams/code_feedback_agent_graph.png", "wb") as f:
-    f.write(code_feedback_agent_graph.get_graph(xray=1).draw_mermaid_png())
+with open("./agents/graph_diagrams/coding_step_graph.png", "wb") as f:
+    f.write(coding_step_graph.get_graph(xray=1).draw_mermaid_png())
