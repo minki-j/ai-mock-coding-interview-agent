@@ -54,9 +54,7 @@ def assess_programming(state: OverallState) -> OverallAssessmentPrivateState:
             "user_submitted_code": state.code_editor_state,
         }
     )
-    return {
-        'code_comprehension_asessment': assessment_response
-    }
+    return {"programming_assessment": assessment_response}
 
 def assess_data_structures_and_algorithms(state: OverallState) -> OverallAssessmentPrivateState:
     assessment_response = (
@@ -68,9 +66,7 @@ def assess_data_structures_and_algorithms(state: OverallState) -> OverallAssessm
             "user_submitted_code": state.code_editor_state,
         }
     )
-    return {
-        'code_comprehension_asessment': assessment_response
-    }
+    return {"data_structures_and_algorithms_assessment": assessment_response}
 
 def assess_debugging_and_testing(state: OverallState) -> OverallAssessmentPrivateState:
     assessment_response = (
@@ -82,9 +78,7 @@ def assess_debugging_and_testing(state: OverallState) -> OverallAssessmentPrivat
             "user_submitted_code": state.code_editor_state,
         }
     )
-    return {
-        'code_comprehension_asessment': assessment_response
-    }
+    return {"testing_and_debugging_assessment": assessment_response}
 
 def assess_growth_mindset(state: OverallState) -> OverallAssessmentPrivateState:
     assessment_response = (
@@ -96,9 +90,7 @@ def assess_growth_mindset(state: OverallState) -> OverallAssessmentPrivateState:
             "user_submitted_code": state.code_editor_state,
         }
     )
-    return {
-        'code_comprehension_asessment': assessment_response
-    }
+    return {"growth_mindset_assessment": assessment_response}
 
 def compile_assessment(state: OverallAssessmentPrivateState) -> OverallState:
     assessment_response = (

@@ -48,6 +48,7 @@ class OverallState(InputState, OutputState):
     main_stage_step: Literal["coding", "debugging", "algorithmic_analysis"] = Field(default="coding")
     thought_process_summary: str = Field(default="")
     debugging_result: str = Field(default="")
+    
 
     # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")
