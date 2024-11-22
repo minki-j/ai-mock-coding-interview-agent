@@ -1,5 +1,5 @@
 import datetime
-from typing import Literal, Optional
+from typing import Literal, Optional, List
 from pydantic import BaseModel
 
 class Interview(BaseModel):
@@ -18,3 +18,4 @@ class LeetcodeQuestion(BaseModel):
     question: str
     examples: list[str]
     constraints: list[str]
+    prep_code: Optional[List[str]] = None
