@@ -25,15 +25,16 @@ def replace_with_new_state(_, new):
 #                    STATE
 # ===========================================
 class InputState(BaseModel):
+    start_date: str = Field(default="")
     interviewee_name: str = Field(default="")
     difficulty_level: Literal["easy", "medium", "hard"] = Field(default="easy")
     interview_title: str = Field(default="")
     interview_question: str = Field(default="")
     interview_question_md: str = Field(default="")
-    interview_solution: str = Field(default="")
     interview_approaches: list[dict] = Field(default=[])
-    interview_solution_md: str = Field(default="")
-    start_date: str = Field(default="")
+    test_code: str = Field(default="")
+    code_snippet: list[dict] = Field(default=[])
+    test_input_output: list[dict] = Field(default=[])
 
 
 class OutputState(BaseModel):

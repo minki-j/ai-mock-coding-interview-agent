@@ -49,13 +49,14 @@ const Home = () => {
         body: JSON.stringify({
           user_id: sessionStorage.getItem("userId"),
           interviewee_name: sessionStorage.getItem("userName"),
-          interview_title: question.title,
-          interview_question: question.content,
-          interview_question_md: question.content_md,
-          interview_solution: question.solution.content,
-          interview_solution_md: question.solution_md,
-          interview_approaches: question.approaches,
-          start_date: new Date().toLocaleString('en-US', {year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric'}),
+          start_date: new Date().toLocaleString("en-US", {
+            year: "numeric",
+            month: "numeric",
+            day: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+          }),
+          ...question,
         }),
       });
       if (response.ok) {
