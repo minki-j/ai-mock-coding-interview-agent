@@ -34,7 +34,7 @@ const ProgressTracker = ({ currentStep }) => {
                 }`}
             >
               <span className="text-sm whitespace-nowrap">
-                {step.id < currentStepIndex && "��� "}
+                {step.id < currentStepIndex && "✓ "}
                 {step.label}
               </span>
             </div>

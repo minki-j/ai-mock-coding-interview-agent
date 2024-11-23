@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import ProgressTracker from "./ProgressTracker";
 
-const Layout = ({ children }) => {
+const Layout = ({ children, currentStep }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -21,10 +21,10 @@ const Layout = ({ children }) => {
 
   return (
     <div className="min-h-screen">
-      <header className="container mx-auto px-4 py-6 flex-col items-center justify-center gap-4">
-        <div className="flex justify-center items-center gap-4">
+      <header className="mx-auto w-full px-4 pt-4 flex-col items-center justify-center gap-4">
+        <div className="flex w-full justify-center items-center gap-4">
           <Link to="/" className="no-underline">
-            <h1 className="text-4xl font-black text-gray-700 uppercase tracking-wider m-0">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-gray-700 uppercase tracking-wider m-0">
               AI Coding Interview Agent
             </h1>
           </Link>
@@ -97,15 +97,31 @@ const Layout = ({ children }) => {
             </div>
           )}
         </div>
-        <ProgressTracker currentStep={"Thought process"} />
+        {location.pathname.includes("/interview") && (
+          <ProgressTracker currentStep={currentStep} />
+        )}
       </header>
       <main className="mx-auto px-4 w-full">{children}</main>
+      <footer className="text-center py-4 text-gray-600 text-sm">
+        <p>
+          🚀 Developed by Minki, Kevin, Sam, and Abhinit |{" "}
+          <a
+            href="https://github.com/minki-j/ai-mock-coding-interview-agent"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 transition-colors duration-150"
+          >
+            GitHub
+          </a>
+        </p>
+      </footer>
     </div>
   );
 };
 
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
+  currentStep: PropTypes.string,
 };
 
 export default Layout;

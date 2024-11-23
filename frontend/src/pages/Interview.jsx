@@ -5,7 +5,7 @@ import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import ChatContainer from "../components/ChatContainer";
 import messageSound from "../assets/sounds/message-pop-alert.mp3";
 
-const Interview = () => {
+const Interview = ({ setCurrentStep }) => {
   const { id } = useParams();
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
@@ -66,13 +66,19 @@ const Interview = () => {
           setTestResult(data.test_result);
         }
         setInterviewQuestion(data.interview_question || "");
+        let current_step = data.stage;
+        if (current_step === "main") {
+          current_step = data.main_stage_step;
+        }
+        current_step = current_step.charAt(0).toUpperCase() + current_step.slice(1).replace("_", " ");
+        setCurrentStep(current_step);
         skipNextCodeEditorUpdate.current = true;
       } catch (error) {
         console.error("Error fetching interview:", error);
       }
     };
     fetchInterview();
-  }, []);
+  }, [id]);
 
   const handleSendMessage = async (message) => {
     const userMessage = {
@@ -96,12 +102,20 @@ const Interview = () => {
           test_result: testResult,
         }),
       });
-      const message_from_interviewer = await response.json();
+      const data = await response.json();
+      const message_from_interviewer = data.message_from_interviewer;
       const interviewerMessage = {
         message: message_from_interviewer,
         sentTime: new Date().toISOString(),
         sender: "AI",
       };
+
+      let current_step = data.stage;
+      if (current_step === "main") {
+        current_step = data.main_stage_step;
+      }
+      current_step = current_step.charAt(0).toUpperCase() + current_step.slice(1).replace("_", " ");
+      setCurrentStep(current_step);
 
       // Use a timeout to ensure the sound plays after the message is added
       setTimeout(() => {
@@ -149,7 +163,7 @@ const Interview = () => {
   }, [code, testResult]);
 
   return (
-    <div className="container h-[calc(100vh-120px)] max-w-full">
+    <div className="container h-[calc(100vh-200px)] max-w-full">
       <div className="grid grid-cols-2 gap-2.5 h-full">
         {/* Left Column with Questions and Chat */}
         <div className="col-span-1 flex flex-col gap-2.5 h-full overflow-hidden">

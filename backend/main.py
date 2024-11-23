@@ -207,7 +207,11 @@ async def chat(data: dict):
     )
     output = main_graph.invoke(None, config)
 
-    return output["message_from_interviewer"]
+    return {
+        "message_from_interviewer": output["message_from_interviewer"],
+        "stage": output["stage"],
+        "main_stage_step": output["main_stage_step"],
+    }
 
 
 @app.post("/update_code_editor_state")
@@ -242,6 +246,8 @@ async def get_interview(id: str):
         "code_snippet": state["code_snippet"],
         "test_code": state["test_code"],
         "test_input_output": state["test_input_output"],
+        "stage": state["stage"],
+        "main_stage_step": state["main_stage_step"],
     }
 
 
