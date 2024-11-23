@@ -12,6 +12,12 @@ const Layout = ({ children }) => {
     navigate("/login");
   };
 
+    const handleFinalSolutionSubmit = async (e) => {
+      console.log("Submitting final solution");
+      e.preventDefault();
+
+    };
+
   return (
     <div className="min-h-screen">
       <header className="container mx-auto px-4 py-6 flex items-center justify-center gap-4">
@@ -21,7 +27,7 @@ const Layout = ({ children }) => {
           </h1>
         </Link>
 
-        <div className="profile-section">
+        <div className="profile-section flex gap-2">
           <div
             className="relative m-0"
             onMouseEnter={() => setIsDropdownOpen(true)}
@@ -52,7 +58,9 @@ const Layout = ({ children }) => {
                       <Link
                         to="/history"
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-right transition-colors duration-150"
-                      >History</Link>
+                      >
+                        History
+                      </Link>
                     </li>
                     <li>
                       <Link
@@ -75,6 +83,12 @@ const Layout = ({ children }) => {
               </div>
             )}
           </div>
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
+            onClick={handleFinalSolutionSubmit}
+          >
+            Submit
+          </button>
         </div>
       </header>
       <main className="mx-auto px-4 w-full">{children}</main>

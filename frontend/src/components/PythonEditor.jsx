@@ -3,7 +3,7 @@ import CodeEditor from "@uiw/react-textarea-code-editor";
 
 const PythonEditor = ({ code, setCode, executeCode }) => {
   return (
-    <div>
+    <div className="relative" >
       <div className="flex flex-col gap-2.5">
         <div className="border border-gray-200 rounded-lg">
           <CodeEditor
@@ -21,12 +21,11 @@ const PythonEditor = ({ code, setCode, executeCode }) => {
         </div>
         <button
           onClick={executeCode}
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          className="absolute top-3.5 right-4 w-10 h-10 rounded-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
         >
-          Run
+          <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-white border-b-[8px] border-b-transparent ml-1" />
         </button>
       </div>
-      
     </div>
   );
 };
