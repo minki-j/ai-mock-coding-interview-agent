@@ -42,5 +42,6 @@
             "analysis": "Time Complexity: O(n^{k - 1}), or O(n^3) for 4Sum. We have k - 2 loops iterating over n elements, and twoSum is O(n). Note that for k > 2, sorting the array does not change the overall time complexity. Space Complexity: O(n) for the hash set. The space needed for the recursion will not exceed O(n)."
         }
     ],
-    "prep_code": "from typing import List\nfrom collections import Counter\n\n\nclass Solution:\n    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:\n"
+    "prep_code": "from typing import List\nfrom collections import Counter\n\n\nclass Solution:\n    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:\n",
+    "test_code": "import unittest\nimport hypothesis.strategies as st\nfrom hypothesis import given\n\n\nclass Test(unittest.TestCase):\n    def test_1(self):\n        solution = Solution()\n        expected = set(\n            [tuple(sorted(i)) for i in [[-2, -1, 1, 2], [-2, 0, 0, 2], [-1, 0, 0, 1]]]\n        )\n        result = set(\n            [tuple(sorted(i)) for i in solution.fourSum([1, 0, -1, 0, -2, 2], 0)]\n        )\n        self.assertEqual(result, expected)\n\n    @given(st.lists(st.integers()), st.integers())\n    def test_random(self, nums, target):\n        solution = Solution()\n        expected = set([tuple(sorted(i)) for i in solution.fourSumNaive(nums, target)])\n        result = set([tuple(sorted(i)) for i in solution.fourSum(nums, target)])\n        self.assertEqual(result, expected)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
 }

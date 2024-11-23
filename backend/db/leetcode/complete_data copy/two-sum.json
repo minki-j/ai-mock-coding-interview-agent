@@ -42,5 +42,6 @@
             }
         }
     ],
-    "prep_code": "from typing import List\n\n\nclass Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n"
+    "prep_code": "from typing import List\n\n\nclass Solution:\n    def twoSum(self, nums: List[int], target: int) -> List[int]:\n",
+    "test_code": "import unittest\n\n\n\nclass Test(unittest.TestCase):\n    def test_1(self):\n        solution = Solution()\n        self.assertEqual(solution.twoSum([2, 7, 11, 15], 9), [0, 1])\n\n    def test_2(self):\n        solution = Solution()\n        self.assertEqual(solution.twoSum([3, 2, 4], 6), [1, 2])\n\n    def test_3(self):\n        solution = Solution()\n        self.assertEqual(solution.twoSum([3, 3], 6), [0, 1])\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
 }

@@ -26,5 +26,6 @@
             "analysis": "Time Complexity: O(log(x)). There are roughly log10(x) digits in x. Space Complexity: O(1)."
         }
     ],
-    "prep_code": "class Solution:\n    def reverse(self, x: int) -> int:\n"
+    "prep_code": "class Solution:\n    def reverse(self, x: int) -> int:\n",
+    "test_code": "import unittest\n\n\n\nclass Test(unittest.TestCase):\n    def test_1(self):\n        solution = Solution()\n        self.assertEqual(solution.reverse(123), 321)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
 }

@@ -32,5 +32,6 @@
             "analysis": "Time complexity: O(max(m, n)). Assume that m and n represent the lengths of l1 and l2 respectively, the algorithm iterates at most max(m, n) times. Space complexity: O(1). The length of the new list is at most max(m,n) + 1. However, we don't count the answer as part of the space complexity."
         }
     ],
-    "prep_code": "class ListNode:\n    def __init__(self, val=0, next=None):\n"
+    "prep_code": "class ListNode:\n    def __init__(self, val=0, next=None):\n",
+    "test_code": null
 }

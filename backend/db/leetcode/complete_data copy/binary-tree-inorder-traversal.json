@@ -66,5 +66,6 @@
             }
         }
     ],
-    "prep_code": "from typing import List\n\n\nfrom utils.tree import TreeNode\n\n\nclass Solution:\n    def inorderTraversal(self, root: TreeNode) -> List[int]:\n"
+    "prep_code": "from typing import List\n\n\nfrom utils.tree import TreeNode\n\n\nclass Solution:\n    def inorderTraversal(self, root: TreeNode) -> List[int]:\n",
+    "test_code": "import unittest\n\nfrom utils.tree import make_tree\n\n\nclass Test(unittest.TestCase):\n    def test_1(self):\n        values = [1, None, 2, 3]\n        root = make_tree(values)\n        solution = Solution()\n        self.assertEqual(solution.inorderTraversal(root), [1, 3, 2])\n\n    def test_2(self):\n        solution = Solution()\n        self.assertEqual(solution.inorderTraversal(None), [])\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
 }

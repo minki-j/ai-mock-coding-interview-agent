@@ -78,5 +78,6 @@
             }
         }
     ],
-    "prep_code": "class Solution:\n    def longestPalindrome(self, s: str) -> str:\n"
+    "prep_code": "class Solution:\n    def longestPalindrome(self, s: str) -> str:\n",
+    "test_code": "import unittest\n\n# import hypothesis.strategies as st\n# from hypothesis import given\n\n\nclass Test(unittest.TestCase):\n    def test_1(self):\n        solution = Solution()\n        self.assertEqual(solution.longestPalindrome(\"babad\") in [\"bab\", \"aba\"], True)\n\n    def test_2(self):\n        solution = Solution()\n        self.assertEqual(solution.longestPalindrome(\"cbbd\") in [\"bb\"], True)\n\n    def test_3(self):\n        solution = Solution()\n        self.assertEqual(solution.longestPalindrome(\"a\") in [\"a\"], True)\n\n    def test_4(self):\n        solution = Solution()\n        self.assertEqual(solution.longestPalindrome(\"ac\") in [\"a\", \"c\"], True)\n\n    # @given(st.lists(st.integers(), min_size=1), st.lists(st.integers()))\n    # def test_random(self, x, y):\n    #     solution = Solution()\n    #     self.assertEqual(solution.longestPalindrome(), True)\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
 }

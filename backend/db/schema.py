@@ -15,7 +15,9 @@ class Interview(BaseModel):
 class LeetcodeQuestion(BaseModel):
     id: str
     title: str
-    question: str
+    content: str
+    difficulty: str
+    topicTags: list[dict]
     examples: list[str]
     constraints: list[str]
     prep_code: Optional[List[str]] = None

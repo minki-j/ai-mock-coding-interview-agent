@@ -3,6 +3,7 @@ import subprocess
 import tempfile
 import uuid
 from typing import Dict, List, Optional
+from pathlib import Path
 
 from agents.llm_models import chat_model
 from agents.main_graph import main_graph
@@ -244,28 +245,28 @@ async def get_interview(id: str):
     )
 
 
-@app.get("/get_interview_questions", response_model=List[LeetcodeQuestion])
+@app.get("/get_interview_questions")
 async def get_interview_questions():
     import json
 
-    # data_path = Path("db/leetcode/refined_data")
-    # questions = []
+    data_path = Path("db/leetcode/complete_data")
+    questions = []
 
-    # for file_path in data_path.glob("*.json"):
-    #     with open(file_path, "r") as f:
-    #         data = json.load(f)
-    #         # TODO: refine more questions
-    #         if data.get("solution_md"):
-    #             questions.append(data)
-    with open("db/leetcode.json", "r", encoding="utf-8") as f:
-        questions = json.load(f)
+    for file_path in data_path.glob("*.json"):
+        with open(file_path, "r") as f:
+            data = json.load(f)
+            if data.get("solution_md"):
+                questions.append(data)
 
-    questions = [LeetcodeQuestion(**question) for question in questions if question["id"] in questions_set]
+    # with open("db/leetcode.json", "r", encoding="utf-8") as f:
+    #     questions = json.load(f)
+
+    # questions = [LeetcodeQuestion(**question) for question in questions if question["id"] in questions_set]
 
     return questions
 
 
-@app.get("/get_interview_question/{id}", response_model=LeetcodeQuestion)
+@app.get("/get_interview_question/{id}")
 async def get_interview_question(id: str):
     print(f"==>> get_interview_question with id: {id}")
     questions = await get_interview_questions()
@@ -276,21 +277,17 @@ async def get_interview_question(id: str):
 
     question_dict = question.model_dump()
 
-    print(f"==>> question: {question_dict}")
+    # print(f"==>> question: {question_dict}")
 
-    # also need to load the prep file
     try:
         with open(f"db/prep/{id}.py", "r", encoding="utf-8") as f:
             lines = f.readlines()
     except FileNotFoundError:
         print(f"==>> prep file for {id} not found")
         lines = []
-
-    print(f"==>> lines: {lines}")
-    print(f"==>> lines type: {type(lines)}")
     question_dict["prep_code"] = lines
 
-    return LeetcodeQuestion(**question_dict)
+    return question_dict
 
 
 async def debug_code_with_llm(leetcode_number, solution, prep_code, error_message):
@@ -392,10 +389,8 @@ async def debug_code(data: dict):
 
 @app.get("/get_history/{user_id}")
 async def get_history(user_id: str):
-    print(f"==>> get_history with user_id: {user_id}")
     interview_ids = await find_many("interviews", {"user_id": ObjectId(user_id)})
     interview_ids = [str(interview_id["_id"]) for interview_id in interview_ids]
-    print(f"==>> interview_ids: {interview_ids}")
     interviews = []
     for interview_id in interview_ids:
         state = main_graph.get_state(

@@ -58,5 +58,6 @@
             }
         }
     ],
-    "prep_code": "def find_common_prefix(str1: str, str2: str):\n"
+    "prep_code": "def find_common_prefix(str1: str, str2: str):\n",
+    "test_code": "import unittest\n\n\nclass Test(unittest.TestCase):\n    def test_1(self):\n        solution = Solution()\n        self.assertEqual(\n            solution.longestCommonPrefix([\"flower\", \"flow\", \"flight\"]), \"fl\"\n        )\n\n    def test_2(self):\n        solution = Solution()\n        self.assertEqual(solution.longestCommonPrefix([\"dog\", \"racecar\", \"car\"]), \"\")\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n"
 }

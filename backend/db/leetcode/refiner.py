@@ -33,50 +33,47 @@ print("Current working directory:", os.getcwd())
 logging.basicConfig(level=logging.INFO)
 
 def populate_codes_in_solution(solution: str, problem_name: str):
-    keyword = ["https://leetcode.com/playground"]
-    urls = []
-    code_snippets = []
-    
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept": "application/json",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": "https://leetcode.com/",
-        "Origin": "https://leetcode.com",
-        "Connection": "keep-alive"
-    }
-    
     session = requests.Session()
-    session.headers.update(headers)
-    
-    for k in keyword:
-        start_idx = solution.find(k)
-        while start_idx != -1:
-            end_idx = solution.find('"', start_idx)
-            if end_idx == -1:
-                end_idx = solution.find(' ', start_idx)
-            if end_idx == -1:
-                end_idx = solution.find('>', start_idx)
-            if end_idx == -1:
-                break
-                
-            full_url = solution[start_idx:end_idx]
-            urls.append(full_url)
+    session.headers.update(
+        {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept": "application/json",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://leetcode.com/",
+            "Origin": "https://leetcode.com",
+            "Connection": "keep-alive",
+        }
+    )
 
-            start_idx = solution.find(k, end_idx)
+    urls = []
+    implementation_codes = []
+    start_idx = solution.find("https://leetcode.com/playground")
+    while start_idx != -1:
+        end_idx = solution.find('"', start_idx)
+        if end_idx == -1:
+            end_idx = solution.find(' ', start_idx)
+        if end_idx == -1:
+            end_idx = solution.find('>', start_idx)
+        if end_idx == -1:
+            break
+
+        full_url = solution[start_idx:end_idx]
+        urls.append(full_url)
+
+        start_idx = solution.find("https://leetcode.com/playground", end_idx)
 
     for url in urls:
         try:
             playground_id = url.split("/playground/")[1].split("/")[0]
             content, lang_slug = fetch_code_via_graphql(session, playground_id)
-            
+
             if content:    
-                code_snippets.append({
+                implementation_codes.append({
                     "url": url,
                     "code": content,
                     "langSlug": lang_slug
                 })
-                
+
                 solution = solution.replace(
                     url, 
                     f"\n```{lang_slug}\n{content}\n```\n"
@@ -84,7 +81,7 @@ def populate_codes_in_solution(solution: str, problem_name: str):
             time.sleep(random.uniform(2, 4))
         except Exception as e:
             logging.error(f"Failed to fetch code from {url}: {str(e)}")
-    return solution, code_snippets
+    return solution, implementation_codes
 
 def fetch_code_via_graphql(session, playground_id):
     query = """
