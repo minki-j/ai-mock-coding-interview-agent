@@ -28,6 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class DebugCodeResult(BaseModel):
     solution: str = Field(description="Fixed code")
     explanation: str = Field(description="Explanation for the fixed code")
@@ -170,13 +171,16 @@ async def init_interview(interview_info: dict):
 
     main_graph.invoke(
         input={
-            "interview_title": interview_info["interview_title"],
-            "interview_question": interview_info["interview_question"],
-            "interview_question_md": interview_info["interview_question_md"],
-            "interview_solution": interview_info["interview_solution"],
-            "interview_solution_md": interview_info["interview_solution_md"],
             "start_date": interview_info["start_date"],
-            "interview_approaches": interview_info["interview_approaches"],
+            "interviewee_name": interview_info["interviewee_name"],
+            "difficulty_level": interview_info["difficulty"].lower(),
+            "interview_title": interview_info["title"],
+            "interview_question": interview_info["content"],
+            "interview_question_md": interview_info["content_md"],
+            "interview_approaches": interview_info["approaches"],
+            "test_code": interview_info["test_code"],
+            "test_input_output": interview_info["test_input_output"],
+            "code_snippet": interview_info["codeSnippets"],
         },
         config={
             "configurable": {"thread_id": interview_id, "get_code_feedback": True},
@@ -217,13 +221,6 @@ async def update_code_editor_state(data: dict):
     )
 
 
-class InterviewUIState(BaseModel):
-    interview_question: str
-    messages: List[Dict]
-    code_editor_state: str
-    test_result: str
-
-
 @app.get("/get_interview/{id}")
 async def get_interview(id: str):
     state = main_graph.get_state(config={"configurable": {"thread_id": id}}).values
@@ -237,26 +234,28 @@ async def get_interview(id: str):
         for msg in state["messages"][1:]
     ]
 
-    return InterviewUIState(
-        interview_question=state["interview_question"],
-        messages=messages,
-        code_editor_state=state["code_editor_state"],
-        test_result=state["test_result"],
-    )
+    return {
+        "interview_question": state["interview_question"],
+        "messages": messages,
+        "code_editor_state": state["code_editor_state"],
+        "test_result": state["test_result"],
+        "code_snippet": state["code_snippet"],
+        "test_code": state["test_code"],
+        "test_input_output": state["test_input_output"],
+    }
 
 
 @app.get("/get_interview_questions")
 async def get_interview_questions():
     import json
 
-    data_path = Path("db/leetcode/complete_data")
+    data_path = Path("db/leetcode/data")
     questions = []
 
     for file_path in data_path.glob("*.json"):
         with open(file_path, "r") as f:
             data = json.load(f)
-            if data.get("solution_md"):
-                questions.append(data)
+            questions.append(data)
 
     # with open("db/leetcode.json", "r", encoding="utf-8") as f:
     #     questions = json.load(f)
@@ -292,7 +291,6 @@ async def get_interview_question(id: str):
 
 async def debug_code_with_llm(leetcode_number, solution, prep_code, error_message):
     leetcode_question = await get_interview_question(leetcode_number)
-
 
     chain = (
         ChatPromptTemplate.from_template(
@@ -336,17 +334,19 @@ Provide your response in the following format:
 
 Ensure that your corrected solution is complete, properly indented, and free of syntax errors. Your explanation should be clear and informative, helping the user understand the problem and its solution.
 """
-
         )
         | chat_model.with_structured_output(DebugCodeResult)
     )
 
-    return chain.invoke({
-        "leetcode_question": leetcode_question,
-        "current_solution": solution,
-        "prep_code": prep_code,
-        "error_message": error_message,
-    })
+    return chain.invoke(
+        {
+            "leetcode_question": leetcode_question,
+            "current_solution": solution,
+            "prep_code": prep_code,
+            "error_message": error_message,
+        }
+    )
+
 
 @app.post("/debug_code")
 async def debug_code(data: dict):
@@ -357,7 +357,9 @@ async def debug_code(data: dict):
         with open(f"db/prep/{leetcode_number}_test.py", "r", encoding="utf-8") as f:
             prep_code = f.read()
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Test file for {leetcode_number} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Test file for {leetcode_number} not found"
+        )
 
     tries, max_tries = 0, 3
     working_code = False
@@ -377,14 +379,26 @@ async def debug_code(data: dict):
 
         # ask LLM to debug the code and return the fixed code
         if not working_code:
-            debug_result = await debug_code_with_llm(leetcode_number, solution, prep_code, output.error)
+            debug_result = await debug_code_with_llm(
+                leetcode_number, solution, prep_code, output.error
+            )
 
             solution = debug_result.solution
 
     if not working_code:
-        raise HTTPException(status_code=400, detail="Code is not working", debug_result=debug_result, debug_explanation=debug_result.explanation, debug_solution=debug_result.solution)
+        raise HTTPException(
+            status_code=400,
+            detail="Code is not working",
+            debug_result=debug_result,
+            debug_explanation=debug_result.explanation,
+            debug_solution=debug_result.solution,
+        )
 
-    return {"status": "success", "solution": solution, "explanation": debug_result.explanation}
+    return {
+        "status": "success",
+        "solution": solution,
+        "explanation": debug_result.explanation,
+    }
 
 
 @app.get("/get_history/{user_id}")
@@ -399,8 +413,8 @@ async def get_history(user_id: str):
 
         interview = {}
         interview["id"] = interview_id
-        interview["title"] = state["interview_title"]
-        interview["start_date"] = state["start_date"]
+        interview["title"] = state.get("interview_title", "No Title")
+        interview["start_date"] = state.get("start_date", "No Start Date")
 
         interviews.append(interview)
     return interviews

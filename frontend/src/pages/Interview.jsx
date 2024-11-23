@@ -10,6 +10,7 @@ const Interview = () => {
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
   const [code, setCode] = useState("");
+  const [testCode, setTestCode] = useState("");
   const [testResult, setTestResult] = useState("");
   const [isQuestionsVisible, setIsQuestionsVisible] = useState(true);
   const [isEditorVisible, setIsEditorVisible] = useState(true);
@@ -17,6 +18,7 @@ const Interview = () => {
   const isFirstRender = useRef(true);
   const skipNextCodeEditorUpdate = useRef(false);
 
+  const default_imports = "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
   const executeCode = async () => {
     setTestResult("Running code...");
     try {
@@ -26,7 +28,7 @@ const Interview = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          code: code,
+          code: default_imports + code + "\n\n" + testCode,
           timeout: 5000,
         }),
       });
@@ -53,7 +55,8 @@ const Interview = () => {
         }
         const data = await res.json();
         setMessages(data.messages || []);
-        setCode(data.code_editor_state || code);
+        setCode(data.code_editor_state === "" ? data.code_snippet[0]["code"] : data.code_editor_state);
+        setTestCode(data.test_code);
         if (data.test_result) {
           setTestResult(data.test_result);
         }
