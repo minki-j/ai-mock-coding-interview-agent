@@ -413,8 +413,8 @@ async def get_history(user_id: str):
 
         interview = {}
         interview["id"] = interview_id
-        interview["title"] = state["interview_title"]
-        interview["start_date"] = state["start_date"]
+        interview["title"] = state.get("interview_title", "No Title")
+        interview["start_date"] = state.get("start_date", "No Start Date")
 
         interviews.append(interview)
     return interviews
