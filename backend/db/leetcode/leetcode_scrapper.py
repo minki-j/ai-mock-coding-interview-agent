@@ -200,7 +200,7 @@ class Test(unittest.TestCase):"""
         test_method = f"""
     def test_{i}(self):
         solution = Solution()
-        self.assertEqual(solution.{function_name}({inputs}), {expected})"""
+        self.___(solution.{function_name}({inputs}), {expected})""" #Need to use LLM to guess the assert method. For ordering  and a sinlge ouput questions, we can use assertEqual, for multiple output questions that don't have ordering, we need to use assertCountEqual
         
         test_code += test_method
 

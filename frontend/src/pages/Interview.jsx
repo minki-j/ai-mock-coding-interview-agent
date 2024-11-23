@@ -18,7 +18,8 @@ const Interview = () => {
   const isFirstRender = useRef(true);
   const skipNextCodeEditorUpdate = useRef(false);
 
-  const default_imports = "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
+  const default_imports =
+    "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
   const executeCode = async () => {
     setTestResult("Running code...");
     try {
@@ -55,7 +56,11 @@ const Interview = () => {
         }
         const data = await res.json();
         setMessages(data.messages || []);
-        setCode(data.code_editor_state === "" ? data.code_snippet[0]["code"] : data.code_editor_state);
+        setCode(
+          data.code_editor_state === ""
+            ? data.code_snippet[0]["code"]
+            : data.code_editor_state
+        );
         setTestCode(data.test_code);
         if (data.test_result) {
           setTestResult(data.test_result);
@@ -143,12 +148,6 @@ const Interview = () => {
     return () => clearTimeout(timeoutId);
   }, [code, testResult]);
 
-  const handleFinalSolutionSubmit = async (e) => {
-    console.log("Submitting final solution");
-    e.preventDefault();
-    // Here you can handle the code submission logic
-  };
-
   return (
     <div className="container h-[calc(100vh-120px)] max-w-full">
       <div className="grid grid-cols-2 gap-2.5 h-full">
@@ -156,9 +155,9 @@ const Interview = () => {
         <div className="col-span-1 flex flex-col gap-2.5 h-full overflow-hidden">
           {/* Interview Questions Section */}
           <div
-            className={`flex-initial px-4 py-2 bg-white border border-gray-100 rounded-lg shadow-inner ${
-              isQuestionsVisible ? "h-[432px]" : "h-[40px]"
-            }`}
+            className={`flex-initial bg-white border border-gray-100 rounded-lg shadow-inner p-5 ${
+              isQuestionsVisible ? "flex-1" : "h-[60px]"
+            } ${!isQuestionsVisible && !messages.length ? "flex-1" : ""}`}
           >
             <div
               className="flex gap-2 items-center cursor-pointer"
@@ -178,7 +177,11 @@ const Interview = () => {
           </div>
 
           {/* Chat UI Kit Section */}
-          <div className="flex-1 overflow-y-auto">
+          <div
+            className={`${
+              isQuestionsVisible ? "flex-1" : "flex-[2]"
+            } overflow-y-auto`}
+          >
             <ChatContainer
               messages={messages}
               onSendMessage={handleSendMessage}
@@ -186,13 +189,13 @@ const Interview = () => {
           </div>
         </div>
 
-        {/* Right Column - Code Editor (unchanged) */}
-        <div className="col-span-1 flex flex-col gap-2.5 h-full">
+        {/* Right Column */}
+        <div className="col-span-1 flex flex-col gap-2.5 h-full overflow-hidden">
           {/* Code Editor Section */}
           <div
-            className={`rounded bg-white border border-gray-100 shadow-inner p-5 flex-1 ${
-              isEditorVisible ? "h-[432px]" : "h-[40px]"
-            }`}
+            className={`bg-white border border-gray-100 shadow-inner p-5 overflow-y-auto ${
+              isEditorVisible ? "flex-1" : "h-[60px]"
+            } ${!isEditorVisible && !isResultsVisible ? "flex-1" : ""}`}
           >
             <div
               className="flex gap-2 items-center cursor-pointer"
@@ -210,10 +213,12 @@ const Interview = () => {
               />
             )}
           </div>
+
+          {/* Test Results Section */}
           <div
-            className={`mt-8 border border-gray-200 rounded-lg p-5 ${
-              isResultsVisible ? "h-[200px]" : "h-[40px]"
-            }`}
+            className={`border border-gray-200 rounded-lg p-5 overflow-x-auto overflow-y-auto ${
+              isResultsVisible ? "flex-1" : "h-[60px]"
+            } ${!isEditorVisible && isResultsVisible ? "flex-[2]" : ""}`}
           >
             <div
               className="flex gap-2 items-center cursor-pointer"
@@ -222,16 +227,9 @@ const Interview = () => {
               <span>{isResultsVisible ? "▼" : "▶"}</span>
               <h2 className="font-semibold">Test Results</h2>
             </div>
-            {isResultsVisible && <div className="mt-2">{testResult}</div>}
-          </div>
-          {/* Submit Button Section */}
-          <div className="flex gap-2.5 w-full">
-            <button
-              className="flex-1 px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-800"
-              onClick={handleFinalSolutionSubmit}
-            >
-              Submit
-            </button>
+            {isResultsVisible && (
+              <div className="mt-2 p-5 h-full">{testResult}</div>
+            )}
           </div>
         </div>
       </div>
