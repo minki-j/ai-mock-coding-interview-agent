@@ -432,6 +432,23 @@ async def delete_all_history(user_id: str):
     return {"status": "success"}
 
 
+@app.post("/change_step")
+async def change_step(data: dict):
+    step = data["step"]
+    if step in ["coding", "debugging", "algorithmic_analysis"]:
+        stage = "main"
+        main_graph.update_state(
+            {"configurable": {"thread_id": data["interview_id"]}},
+            {"stage": "main", "main_stage_step": step},
+        )
+    else:
+        stage = step
+        main_graph.update_state(
+            {"configurable": {"thread_id": data["interview_id"]}},
+            {"stage": stage, "main_stage_step": "coding"},  # only change stage and set main_stage_step default 
+        )
+
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}

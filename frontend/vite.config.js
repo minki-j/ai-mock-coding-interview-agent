@@ -16,6 +16,7 @@ const proxyEndpoints = [
   "/get_history",
   "/delete_all_history",
   "/update_code_editor_state",
+  "/change_step",
 ];
 
 const proxyConfig = Object.fromEntries(

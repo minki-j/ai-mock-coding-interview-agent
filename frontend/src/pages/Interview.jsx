@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
+import PropTypes from "prop-types";
 import PythonEditor from "../components/PythonEditor";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import ChatContainer from "../components/ChatContainer";
@@ -70,7 +71,6 @@ const Interview = ({ setCurrentStep }) => {
         if (current_step === "main") {
           current_step = data.main_stage_step;
         }
-        current_step = current_step.charAt(0).toUpperCase() + current_step.slice(1).replace("_", " ");
         setCurrentStep(current_step);
         skipNextCodeEditorUpdate.current = true;
       } catch (error) {
@@ -249,6 +249,10 @@ const Interview = ({ setCurrentStep }) => {
       </div>
     </div>
   );
+};
+
+Interview.propTypes = {
+  setCurrentStep: PropTypes.func.isRequired,
 };
 
 export default Interview;

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 import ProgressTracker from "./ProgressTracker";
 
-const Layout = ({ children, currentStep }) => {
+const Layout = ({ children, currentStep, setCurrentStep }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -28,7 +28,6 @@ const Layout = ({ children, currentStep }) => {
               AI Coding Interview Agent
             </h1>
           </Link>
-
           <div className="profile-section flex gap-2">
             <div
               className="relative m-0"
@@ -98,7 +97,10 @@ const Layout = ({ children, currentStep }) => {
           )}
         </div>
         {location.pathname.includes("/interview") && (
-          <ProgressTracker currentStep={currentStep} />
+          <ProgressTracker 
+            currentStep={currentStep} 
+            setCurrentStep={setCurrentStep}
+          />
         )}
       </header>
       <main className="mx-auto px-4 w-full">{children}</main>
@@ -122,6 +124,7 @@ const Layout = ({ children, currentStep }) => {
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
   currentStep: PropTypes.string,
+  setCurrentStep: PropTypes.func
 };
 
 export default Layout;

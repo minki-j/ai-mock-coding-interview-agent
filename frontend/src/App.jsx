@@ -18,7 +18,10 @@ function App() {
 
   return (
     <Router>
-      <Layout currentStep={currentStep}>
+      <Layout 
+        currentStep={currentStep} 
+        setCurrentStep={setCurrentStep} 
+      >
         <Routes>
           <Route element={<ProtectedRoutes/>}>
             <Route path="/" element={<Home />} />

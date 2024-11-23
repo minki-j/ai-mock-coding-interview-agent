@@ -1,16 +1,32 @@
 import PropTypes from 'prop-types';
 
-const ProgressTracker = ({ currentStep }) => {
-  const steps = [
-    { id: 1, label: "Thought process" },
-    { id: 2, label: "Coding" },
-    { id: 3, label: "Debugging" },
-    { id: 4, label: "Algorithmic analysis" },
-    { id: 5, label: "Submission" },
-  ];
+const ProgressTracker = ({ currentStep, setCurrentStep }) => {
+  const pathname = window.location.pathname;
+  const id = pathname.split('/interview/')[1];
+  const handleStepClick = async (step) => {
+    const response = await fetch("/change_step", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        interview_id: id,
+        step: step,
+      }),
+    });
+    if (response.ok) {
+      console.log("Step changed to", step);
+      setCurrentStep(step);
+    } else {
+      console.error("Failed to change step");
+    }
+  };
 
-  // Find the current step index
-  const currentStepIndex = steps.findIndex(step => step.label === currentStep) + 1;
+  const steps = [
+    { id: 0, label: "Thought process", code: "thought_process" },
+    { id: 1, label: "Coding", code: "coding" },
+    { id: 2, label: "Debugging", code: "debugging" },
+    { id: 3, label: "Algorithmic analysis", code: "algorithmic_analysis" },
+    { id: 4, label: "Submission", code: "submission" },
+  ];
 
   const chevronStyle = {
     clipPath:
@@ -24,17 +40,23 @@ const ProgressTracker = ({ currentStep }) => {
           <div key={step.id} className="relative flex items-center h-10">
             <div
               style={chevronStyle}
-              className={`flex items-center justify-center px-6 h-full
+              onClick={() => handleStepClick(step.code)}
+              className={`flex items-center justify-center px-6 h-full hover:cursor-pointer 
+                transform transition-transform duration-100 hover:-translate-y-1
                 ${
-                  step.id < currentStepIndex
+                  step.id <
+                  steps.findIndex((step) => step.code === currentStep)
                     ? "bg-blue-600 text-white"
-                    : step.id === currentStepIndex
+                    : step.id ===
+                      steps.findIndex((step) => step.code === currentStep)
                     ? "bg-green-300 text-black"
                     : "bg-gray-100 text-gray-500"
                 }`}
             >
               <span className="text-sm whitespace-nowrap">
-                {step.id < currentStepIndex && "✓ "}
+                {step.id <
+                  steps.findIndex((step) => step.code === currentStep) &&
+                  "✓ "}
                 {step.label}
               </span>
             </div>
@@ -47,6 +69,7 @@ const ProgressTracker = ({ currentStep }) => {
 
 ProgressTracker.propTypes = {
   currentStep: PropTypes.string.isRequired,
+  setCurrentStep: PropTypes.func.isRequired
 };
 
 export default ProgressTracker;
