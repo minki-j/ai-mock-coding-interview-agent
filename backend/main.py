@@ -207,7 +207,11 @@ async def chat(data: dict):
     )
     output = main_graph.invoke(None, config)
 
-    return output["message_from_interviewer"]
+    return {
+        "message_from_interviewer": output["message_from_interviewer"],
+        "stage": output["stage"],
+        "main_stage_step": output["main_stage_step"],
+    }
 
 
 @app.post("/update_code_editor_state")
@@ -242,6 +246,8 @@ async def get_interview(id: str):
         "code_snippet": state["code_snippet"],
         "test_code": state["test_code"],
         "test_input_output": state["test_input_output"],
+        "stage": state["stage"],
+        "main_stage_step": state["main_stage_step"],
     }
 
 
@@ -424,6 +430,23 @@ async def get_history(user_id: str):
 async def delete_all_history(user_id: str):
     await delete_many("interviews", {"user_id": ObjectId(user_id)})
     return {"status": "success"}
+
+
+@app.post("/change_step")
+async def change_step(data: dict):
+    step = data["step"]
+    if step in ["coding", "debugging", "algorithmic_analysis"]:
+        stage = "main"
+        main_graph.update_state(
+            {"configurable": {"thread_id": data["interview_id"]}},
+            {"stage": "main", "main_stage_step": step},
+        )
+    else:
+        stage = step
+        main_graph.update_state(
+            {"configurable": {"thread_id": data["interview_id"]}},
+            {"stage": stage, "main_stage_step": "coding"},  # only change stage and set main_stage_step default 
+        )
 
 
 @app.get("/health")

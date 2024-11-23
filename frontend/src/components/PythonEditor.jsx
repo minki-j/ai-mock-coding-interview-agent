@@ -21,9 +21,9 @@ const PythonEditor = ({ code, setCode, executeCode }) => {
         </div>
         <button
           onClick={executeCode}
-          className="absolute top-3.5 right-4 w-10 h-10 rounded-full bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:shadow-lg"
+          className="absolute bottom-2 right-2 w-10 h-7 rounded-lg bg-blue-400 hover:bg-blue-500 text-white flex items-center justify-center transition-all duration-100 shadow-md hover:shadow-lg text-xs"
         >
-          <div className="w-0 h-0 border-t-[8px] border-t-transparent border-l-[12px] border-l-white border-b-[8px] border-b-transparent ml-1" />
+          Run
         </button>
       </div>
     </div>

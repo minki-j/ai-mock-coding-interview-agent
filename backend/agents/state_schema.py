@@ -39,17 +39,16 @@ class InputState(BaseModel):
 
 class OutputState(BaseModel):
     message_from_interviewer: Annotated[str, replace_with_new_state] = Field(default="")
-
-
-class OverallState(InputState, OutputState):
-    greeting_msg_index: int = Field(default=0)
     stage: Literal["greeting", "thought_process", "main", "assessment"] = Field(
         default="greeting"
     )
-    main_stage_step: Literal["coding", "debugging", "algorithmic_analysis"] = Field(default="coding")
+    main_stage_step: Literal["coding", "debugging", "algorithmic_analysis"] = Field(
+        default="coding"
+    )
+
+class OverallState(InputState, OutputState):
+    greeting_msg_index: int = Field(default=0)
     thought_process_summary: str = Field(default="")
-    debugging_result: str = Field(default="")
-    
 
     # TODO: evolution of the code and test result.
     code_editor_state: str = Field(default="")
