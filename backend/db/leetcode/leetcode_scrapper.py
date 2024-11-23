@@ -9,6 +9,11 @@ from problem_names import PROBLEM_NAMES
 from markdownify import markdownify
 import logging
 import re
+from enum import Enum
+from pydantic import BaseModel, Field
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -186,6 +191,7 @@ class LeetCodeScraper:
             print(f"Error fetching problem {problem_name}: {str(e)}")
             return {}
 
+
 def generate_test_code(test_input_output_dict_list, function_name):
     test_code = """import unittest
 
@@ -193,15 +199,15 @@ class Test(unittest.TestCase):"""
 
     # Generate test methods for each test case
     for i, test_case in enumerate(test_input_output_dict_list, 1):
-        inputs = test_case['input']
-        expected = test_case['output']
-        
+        inputs = test_case["input"]
+        expected = test_case["output"]
+
         # Format the test method
         test_method = f"""
     def test_{i}(self):
         solution = Solution()
-        self.___(solution.{function_name}({inputs}), {expected})""" #Need to use LLM to guess the assert method. For ordering  and a sinlge ouput questions, we can use assertEqual, for multiple output questions that don't have ordering, we need to use assertCountEqual
-        
+        self.___(solution.{function_name}({inputs}), {expected})"""  # Need to use LLM to guess the assert method. For ordering  and a sinlge ouput questions, we can use assertEqual, for multiple output questions that don't have ordering, we need to use assertCountEqual
+
         test_code += test_method
 
     # Add main block
@@ -212,6 +218,7 @@ if __name__ == "__main__":
 """
     return test_code
 
+
 def main():
     scraper = LeetCodeScraper()
 
@@ -221,18 +228,18 @@ def main():
 
     for problem_name in PROBLEM_NAMES:
 
-        if os.path.exists(f"./data/{problem_name}.json"):
-            print(f"-- Skipping {problem_name} - already exists")
-            continue
+        # if os.path.exists(f"./data/{problem_name}.json"):
+        #     print(f"-- Skipping {problem_name} - already exists")
+        #     continue
 
         result = scraper.scrape_problem(problem_name)
         if not result:
             continue
 
         # Contents
-        result["content_md"] = markdownify(result["content"]).replace(
-            "\n\n\u00a0\n\n", ""
-        ).strip()
+        result["content_md"] = (
+            markdownify(result["content"]).replace("\n\n\u00a0\n\n", "").strip()
+        )
 
         # Extract test examples from contents
         test_examples = result["content_md"].split("**Example ")[1:]
@@ -245,10 +252,18 @@ def main():
                 if len(code_blocks) >= 2:
                     code_block = code_blocks[1].strip()
                     lines = code_block.split("\n")
-                    input_line = next((line for line in lines if line.startswith("Input:")), "")
-                    output_line = next((line for line in lines if line.startswith("Output:")), "")
-                    test_input_output_dict["input"] = input_line.replace("Input:", "").strip()
-                    test_input_output_dict["output"] = output_line.replace("Output:", "").strip()
+                    input_line = next(
+                        (line for line in lines if line.startswith("Input:")), ""
+                    )
+                    output_line = next(
+                        (line for line in lines if line.startswith("Output:")), ""
+                    )
+                    test_input_output_dict["input"] = input_line.replace(
+                        "Input:", ""
+                    ).strip()
+                    test_input_output_dict["output"] = output_line.replace(
+                        "Output:", ""
+                    ).strip()
                     test_input_output_dict_list.append(test_input_output_dict)
             except Exception as e:
                 print(f"Error parsing test example: {e}")
@@ -256,9 +271,47 @@ def main():
         result["test_input_output"] = test_input_output_dict_list
 
         # Test code
-        function_name = result["codeSnippets"][0]["code"].split("def ")[1].split("(")[0].strip()
+        function_name = (
+            result["codeSnippets"][0]["code"].split("def ")[1].split("(")[0].strip()
+        )
         test_code = generate_test_code(result["test_input_output"], function_name)
-        result["test_code"] = test_code
+
+        load_dotenv('.env', override=True)
+        OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+        chat_model = ChatOpenAI(
+            model="gpt-4o-2024-08-06",
+            api_key=OPENAI_API_KEY,
+            temperature=0.7,
+        )
+
+        class FunctionName(Enum):
+            assertEqual = "assertEqual"
+            assertCountEqual = "assertCountEqual"
+        class Response(BaseModel):
+            function_name: FunctionName = Field(
+                description="The function name to use for the assert method."
+            )
+        response = (
+            ChatPromptTemplate.from_template(
+                """
+            You are given an coding interview question and a test code for a function. You need to determine which assert method to use for the test in the place of ___.
+            ---
+            Interview question: {content_md}
+            ---
+            Test code:
+            {test_code}
+            ---
+            """
+            )
+            | chat_model.with_structured_output(Response)
+        ).invoke(
+            {
+                "test_code": test_code,
+                "content_md": result["content_md"],
+            }
+        )
+        result["test_code"] = test_code.replace("___", response.function_name.value)
 
         # Solutions
         solution_sections = result["solution"]["content"].split("### Approach ")
