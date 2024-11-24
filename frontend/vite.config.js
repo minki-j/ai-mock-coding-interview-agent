@@ -1,7 +1,14 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-const backendUrl = process.env.VITE_BACKEND_URL || "http://localhost:8000";
+const DOCKER_BACKEND = "http://fastapi:8000";
+const LOCAL_BACKEND = "http://localhost:8000";
+
+const backendUrl = process.env.VITE_BACKEND_URL || 
+  (process.env.DOCKER_ENV === "true" ? DOCKER_BACKEND : LOCAL_BACKEND);
+
+// Log the backend URL for debugging
+console.log(`Backend URL configured as: ${backendUrl}`);
 
 const proxyEndpoints = [
   "/execute",
