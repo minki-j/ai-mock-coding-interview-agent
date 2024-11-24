@@ -1,4 +1,4 @@
-import os
+import json
 from varname import nameof as n
 from pydantic import BaseModel, Field
 
@@ -24,9 +24,16 @@ class CodeFeedbackAgentPrivateState(BaseModel):
 
 
 def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState:
+    if state.user_approach == "":
+        user_approach = "\n".join(
+            [json.dumps(approach) for approach in state.approaches]
+        )
+    else:
+        user_approach = state.user_approach
+
     return {
         "interview_question_md": state.interview_question_md,
-        "user_approach": state.user_approach,
+        "user_approach": user_approach,
         "code_editor_state": state.code_editor_state,
     }
 

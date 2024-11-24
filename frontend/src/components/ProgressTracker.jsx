@@ -25,7 +25,7 @@ const ProgressTracker = ({ currentStep, setCurrentStep }) => {
     { id: 1, label: "Coding", code: "coding" },
     { id: 2, label: "Debugging", code: "debugging" },
     { id: 3, label: "Algorithmic analysis", code: "algorithmic_analysis" },
-    { id: 4, label: "Submission", code: "submission" },
+    { id: 4, label: "Submission", code: "assessment" },
   ];
 
   const chevronStyle = {
