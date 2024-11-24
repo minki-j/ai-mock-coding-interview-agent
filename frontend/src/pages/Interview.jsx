@@ -114,18 +114,15 @@ const Interview = ({ setCurrentStep }) => {
       if (current_step === "main") {
         current_step = data.main_stage_step;
       }
-      current_step = current_step.charAt(0).toUpperCase() + current_step.slice(1).replace("_", " ");
       setCurrentStep(current_step);
 
-      // Use a timeout to ensure the sound plays after the message is added
       setTimeout(() => {
         setMessages((prevMessages) => [...prevMessages, interviewerMessage]);
         const audio = new Audio(messageSound);
-        audio.play(); // Play sound when interviewer responds
+        audio.play();
       }, 100);
     } catch (error) {
       console.error("Error handling chat response:", error);
-      // Optionally handle the error in the UI
     }
   };
 

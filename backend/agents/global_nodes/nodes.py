@@ -27,7 +27,7 @@ def check_if_solution_is_leaked(state: OverallState):
     ).invoke(
         {
             "question": state.interview_question_md,
-            "solution": state.interview_solution,
+            "solution": state.user_approach,
             "feedback": state.message_from_interviewer,
         }
     )
