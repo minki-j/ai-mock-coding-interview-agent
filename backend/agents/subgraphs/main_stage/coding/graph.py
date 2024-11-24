@@ -17,7 +17,7 @@ from . import prompts
 
 class CodeFeedbackAgentPrivateState(BaseModel):
     interview_question_md: str = Field(default="")
-    interview_solution_md: str = Field(default="")
+    user_approach: str = Field(default="")
     code_editor_state: str = Field(default="")
 
     assessment_result: str = Field(default="")
@@ -26,7 +26,7 @@ class CodeFeedbackAgentPrivateState(BaseModel):
 def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState:
     return {
         "interview_question_md": state.interview_question_md,
-        "interview_solution_md": state.interview_solution_md,
+        "user_approach": state.user_approach,
         "code_editor_state": state.code_editor_state,
     }
 
@@ -39,7 +39,7 @@ def assess_code_with_correct_solution(state: CodeFeedbackAgentPrivateState):
     ).invoke(
         {
             "interview_question": state.interview_question_md,
-            "correct_solution": state.interview_solution_md,
+            "correct_solution": state.user_approach,
             "user_solution": state.code_editor_state,
         }
     )
