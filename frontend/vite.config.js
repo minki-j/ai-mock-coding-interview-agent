@@ -31,8 +31,5 @@ export default defineConfig({
     proxy: proxyConfig,
     port: process.env.PORT || 3001,
     host: true,
-    dns: {
-      family: 4
-    }
   },
 });
