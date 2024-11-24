@@ -255,7 +255,7 @@ async def get_interview(id: str):
 async def get_interview_questions():
     import json
 
-    data_path = Path("db/leetcode/data")
+    data_path = Path("db/leetcode/interview_data")
     questions = []
 
     for file_path in data_path.glob("*.json"):
