@@ -22,7 +22,10 @@ app = FastAPI(title="Python Code Execution Service")
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://*.railway.app",  # Allow Railway domains
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
