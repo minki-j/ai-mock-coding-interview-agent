@@ -68,6 +68,3 @@ g.add_node(generate_feedback)
 g.add_edge(n(generate_feedback), END)
 
 algorithmic_analysis_step_graph = g.compile()
-
-with open("./agents/graph_diagrams/algorithmic_analysis_step_graph.png", "wb") as f:
-    f.write(algorithmic_analysis_step_graph.get_graph(xray=1).draw_mermaid_png())

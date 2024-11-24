@@ -63,14 +63,14 @@ const Layout = ({ children, currentStep, setCurrentStep }) => {
                           History
                         </Link>
                       </li>
-                      <li>
+                      {/* <li>
                         <Link
                           to="/settings"
                           className="block px-4 py-2 text-gray-700 hover:bg-gray-50 text-right transition-colors duration-150"
                         >
                           Settings
                         </Link>
-                      </li>
+                      </li> */}
                       <li>
                         <button
                           onClick={handleLogout}
