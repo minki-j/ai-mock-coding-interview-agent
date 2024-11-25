@@ -20,7 +20,7 @@ def connect_to_mongo():
         client = MongoClient(
             MONGO_URL,
             tls=True,
-            tlsAllowInvalidCertificates=False,
+            tlsAllowInvalidCertificates=True,
             serverSelectionTimeoutMS=5000
         )
         db = client[DB_NAME]
