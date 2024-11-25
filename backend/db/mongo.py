@@ -1,46 +1,53 @@
 import os
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 from typing import Optional
 from fastapi import HTTPException
 from pydantic import BaseModel
 
 # MongoDB connection configuration
-MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
-DB_NAME = "letscode"
+MONGO_URL = os.getenv("MONGO_URL", "")
+print(f"==>> MONGO_URL: {MONGO_URL}")
+DB_NAME = "main"
 
 # Initialize MongoDB client
-client: Optional[AsyncIOMotorClient] = None
+client: Optional[MongoClient] = None
 db = None
 
-async def connect_to_mongo():
+def connect_to_mongo():
     """Connect to MongoDB and initialize database client."""
     global client, db
     try:
-        client = AsyncIOMotorClient(MONGO_URL)
+        client = MongoClient(
+            MONGO_URL,
+            tls=True,
+            tlsAllowInvalidCertificates=False,
+            serverSelectionTimeoutMS=5000
+        )
         db = client[DB_NAME]
-        await client.admin.command('ping')  # Verify connection
+        # Verify connection
+        client.admin.command('ping')
         print("Successfully connected to MongoDB")
     except Exception as e:
         print(f"Error connecting to MongoDB: {e}")
         raise
 
-async def close_mongo_connection():
+def close_mongo_connection():
     """Close MongoDB connection."""
     global client
     if client:
         client.close()
         print("MongoDB connection closed")
 
-async def get_collection(collection_name: str):
+def get_collection(collection_name: str):
     """Get MongoDB collection by name."""
     if db is None:
-        await connect_to_mongo()
+        connect_to_mongo()
     return db[collection_name]
 
-async def insert_document(collection_name: str, model: BaseModel | dict):
+def insert_document(collection_name: str, model: BaseModel | dict):
     """Insert a Pydantic/SQLModel model or dictionary into MongoDB collection."""
     try:
-        collection = await get_collection(collection_name)
+        collection = get_collection(collection_name)
 
         # Handle both Pydantic models and dictionaries
         if isinstance(model, BaseModel):
@@ -48,7 +55,7 @@ async def insert_document(collection_name: str, model: BaseModel | dict):
         else:
             document = {k: v for k, v in model.items() if v is not None and k != 'id'}
             
-        result = await collection.insert_one(document)
+        result = collection.insert_one(document)
         return result.inserted_id
     except Exception as e:
         print(f"Error inserting document into {collection_name}: {e}")
@@ -57,11 +64,11 @@ async def insert_document(collection_name: str, model: BaseModel | dict):
             detail=f"Failed to insert document into {collection_name}"
         )
 
-async def find_one(collection_name: str, query: dict):
+def find_one(collection_name: str, query: dict):
     """Find a single document in MongoDB collection."""
     try:
-        collection = await get_collection(collection_name)
-        document = await collection.find_one(query)
+        collection = get_collection(collection_name)
+        document = collection.find_one(query)
         if document:
             # Convert ObjectId to string in the returned document
             document["id"] = str(document["_id"])
@@ -74,11 +81,15 @@ async def find_one(collection_name: str, query: dict):
             detail=f"Failed to find document in {collection_name}"
         )
 
-async def find_many(collection_name: str, query: dict):
+def find_many(collection_name: str, query: dict):
     """Find multiple documents in MongoDB collection."""
     try:
-        collection = await get_collection(collection_name)
-        documents = await collection.find(query).to_list(length=None)
+        collection = get_collection(collection_name)
+        documents = list(collection.find(query))
+        # Convert ObjectIds to strings
+        for doc in documents:
+            doc["id"] = str(doc["_id"])
+            del doc["_id"]
         return documents
     except Exception as e:
         print(f"Error finding documents in {collection_name}: {e}")
@@ -87,11 +98,14 @@ async def find_many(collection_name: str, query: dict):
             detail=f"Failed to find documents in {collection_name}"
         )
     
-async def delete_many(collection_name: str, query: dict):
+def delete_many(collection_name: str, query: dict):
     """Delete multiple documents in MongoDB collection."""
     try:
-        collection = await get_collection(collection_name)
-        await collection.delete_many(query)
+        collection = get_collection(collection_name)
+        collection.delete_many(query)
     except Exception as e:
         print(f"Error deleting documents in {collection_name}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to delete documents in {collection_name}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Failed to delete documents in {collection_name}"
+        )

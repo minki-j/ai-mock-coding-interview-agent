@@ -14,3 +14,4 @@ motor==3.6.0
 markdownify==0.13.1
 pytest>=8.1.1
 hypothesis>=6.88.0
+pymongo==4.10.1
