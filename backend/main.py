@@ -150,14 +150,14 @@ async def add_user(user: dict):
         raise HTTPException(status_code=400, detail="oauth_id is required")
 
     # Check if user exists using oauth_id
-    existing_user = await find_one("users", {"oauth_id": user["oauth_id"]})
+    existing_user = find_one("users", {"oauth_id": user["oauth_id"]})
     if existing_user:
         print("the user already exists")
         return existing_user
 
     # If user doesn't exist, insert new user
     print("inserting new user")
-    user_id = await insert_document("users", user)
+    user_id = insert_document("users", user)
     return {"id": str(user_id), **user}
 
 
@@ -165,7 +165,7 @@ async def add_user(user: dict):
 async def init_interview(interview_info: dict):
     print(f"==>> init_interview with user_id: {interview_info['user_id']}")
     user_id = ObjectId(interview_info["user_id"])
-    interview_id = await insert_document(
+    interview_id = insert_document(
         "interviews",
         {
             "user_id": user_id,
@@ -412,7 +412,7 @@ async def debug_code(data: dict):
 
 @app.get("/get_history/{user_id}")
 async def get_history(user_id: str):
-    interview_ids = await find_many("interviews", {"user_id": ObjectId(user_id)})
+    interview_ids = find_many("interviews", {"user_id": ObjectId(user_id)})
     interview_ids = [str(interview_id["_id"]) for interview_id in interview_ids]
     interviews = []
     for interview_id in interview_ids:
@@ -431,7 +431,7 @@ async def get_history(user_id: str):
 
 @app.delete("/delete_all_history/{user_id}")
 async def delete_all_history(user_id: str):
-    await delete_many("interviews", {"user_id": ObjectId(user_id)})
+    delete_many("interviews", {"user_id": ObjectId(user_id)})
     return {"status": "success"}
 
 

@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 # MongoDB connection configuration
 MONGO_URL = os.getenv("MONGO_URL", "")
-print(f"==>> MONGO_URL: {MONGO_URL}")
 DB_NAME = "main"
 
 # Initialize MongoDB client
