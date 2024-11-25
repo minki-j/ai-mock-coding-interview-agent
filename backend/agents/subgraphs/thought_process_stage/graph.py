@@ -91,7 +91,7 @@ def detect_user_approach(state: OverallState):
     )
 
     if user_approach_dict is None:
-        return {"user_approach:" "unknown"}
+        return {"user_approach": "unknown"}
 
     return {"user_approach": json.dumps(user_approach_dict)}
 
