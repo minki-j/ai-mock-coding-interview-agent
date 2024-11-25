@@ -412,21 +412,24 @@ async def debug_code(data: dict):
 
 @app.get("/get_history/{user_id}")
 async def get_history(user_id: str):
-    interview_ids = find_many("interviews", {"user_id": ObjectId(user_id)})
-    interview_ids = [str(interview_id["_id"]) for interview_id in interview_ids]
-    interviews = []
-    for interview_id in interview_ids:
+    interviews = find_many("interviews", {"user_id": ObjectId(user_id)})
+    interviews_ids = [str(interview["id"]) for interview in interviews]
+    interview_data = []
+    for interview_id in interviews_ids:
         state = main_graph.get_state(
             config={"configurable": {"thread_id": interview_id}}
         ).values
+
+        if state == {}:
+            continue
 
         interview = {}
         interview["id"] = interview_id
         interview["title"] = state.get("interview_title", "No Title")
         interview["start_date"] = state.get("start_date", "No Start Date")
 
-        interviews.append(interview)
-    return interviews
+        interview_data.append(interview)
+    return interview_data
 
 
 @app.delete("/delete_all_history/{user_id}")
