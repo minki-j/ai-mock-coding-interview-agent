@@ -22,10 +22,10 @@ from pydantic import BaseModel, Field
 
 def is_user_approach_known(state: OverallState):
     print("\n>>> CONDITIONAL EDGE: is_user_approach_known")
-    if state.user_approach:
-        return n(approach_based_reply)
-    else:
+    if state.user_approach == "unknown":
         return n(general_reply)
+    else:
+        return n(approach_based_reply)
 
 
 def approach_based_reply(state: OverallState):
