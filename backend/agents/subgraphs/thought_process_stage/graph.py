@@ -34,7 +34,7 @@ def approach_based_reply(state: OverallState):
         ChatPromptTemplate.from_template(GIVE_APPROACH_SPEIFIC_HINT) | chat_model
     ).invoke(
         {
-            "question": state.interview_question,
+            "question": state.interview_question_md,
             "approach": f"{state.user_approach}",
             "conversation": state.stringify_messages(),
         }
@@ -73,8 +73,13 @@ def detect_user_approach(state: OverallState):
         )
         .invoke(
             {
-                "question": state.interview_question,
-                "approaches": state.interview_approaches,
+                "question": state.interview_question_md,
+                "approaches": "\n\n".join(
+                    [
+                        f"#{approach['title']}: {approach['approach']}"
+                        for approach in state.interview_approaches
+                    ]
+                ),
                 "conversation": state.stringify_messages(),
             }
         )

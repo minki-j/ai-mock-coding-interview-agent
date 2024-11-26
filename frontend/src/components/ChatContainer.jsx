@@ -12,6 +12,19 @@ import {
 const ChatContainer = ({ messages, onSendMessage }) => {
   const messageListRef = useRef(null);
 
+  // Add helper function to strip HTML tags
+  const stripHtmlTags = (html) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  };
+
+  // Wrap onSendMessage to clean the input
+  const handleSendMessage = (message) => {
+    const cleanMessage = stripHtmlTags(message);
+    onSendMessage(cleanMessage);
+  };
+
   return (
     <MainContainer className="flex flex-col h-full">
       <ChatUI className="flex flex-col flex-1 min-h-0">
@@ -33,7 +46,7 @@ const ChatContainer = ({ messages, onSendMessage }) => {
         </MessageList>
         <MessageInput
           placeholder="Type message here"
-          onSend={onSendMessage}
+          onSend={handleSendMessage}
           attachButton={false}
         />
       </ChatUI>

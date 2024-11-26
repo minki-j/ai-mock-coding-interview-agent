@@ -1,17 +1,34 @@
 IS_THOUGHT_PROCESS_DONE = """
-You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
+You are interviewing a candidate for a software engineering role.There are two stages of the interview. A) Thought process stage: The candidate is thinking out loud about how to solve the problem. B) Actual coding stage: The candidate is writing code to solve the problem.
 The candidate is currently in the thought process stage. You need to decide if the candidate has provided enough thought process for the problem and can move on to the actual interview stage.
 
-----
+---
+
+Here are some examples of what a good thought process looks like:
+
+Example 1.
+>>AI: Great! Let's begin the thought process phase.
+>>User: I think I can solve this problem by using a binary search algorithm.
+>>AI: That's a good approach. Can you tell me more about how you would implement it?
+>>User: I would first sort the array, then use a two pointer technique to find the two numbers:  starting one pointer at the beginning of the array and the other at the end, I’d adjust their positions based on the sum of the two numbers they point to.
+>>AI: That's a good plan! Can you tell me more about how you would handle the edge cases?
+>>User: I would check if the array is empty or has only one element.
+>>AI: That's a good idea! What would you do in those cases?
+>>User: If the array is empty, I would return an empty array. If the array has only one element, I would return the element itself.
+
+Output:
+rationale: The candidate understood the problem correctly, has a plan on how to solve the problem, and considered at least one edge case.
+should_end_thought_process: True
+
+---
 
 Important rules:
-1. Even though the candiate didn't provide enough thought process, if the candidate wants to move on to the actual interview stage, you should let them.
-2. Criteria for enough thought process:
-    - The candidate understood the problem correctly
-    - The candidate has some ideas on how to solve the problem
-    - The candidate considered at least one edge case
+1. Criteria for enough thought process:
+- The candidate understood the problem correctly
+- The candidate has planned on how to solve the problem.
+- The candidate considered at least one edge case
 
-----
+---
 
 Here is the current conversation:
 {messages}
