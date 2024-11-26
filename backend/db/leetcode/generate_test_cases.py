@@ -132,7 +132,7 @@ def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str
           "content": [
             {
               "type": "text",
-              "text": "Please generate the following leetcode algorithm additional test cases, based on provided solutions and existing test cases. Please include as much as test cases as possible, and be sure to cover all edge cases. All the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file"
+              "text": "Please generate the following leetcode algorithm additional test cases, based on provided solutions and existing test cases. Please include as much as test cases as possible, and be sure to cover all edge cases. All the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file. If there are any errors in the previous test cases, please fix them instead of generating new ones."
             }
           ]
         },
@@ -157,7 +157,7 @@ def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str
     return response.choices[0].message.parsed
 
 
-def main():
+def main(tries: int = 3):
 
     # let's start with two-sum only
     with open("interview_data/two-sum.json", "r") as f:
@@ -167,10 +167,10 @@ def main():
     solution = data["approaches"][0]["implementation_code"]
 
     if test_cases and solution:
-        tries = 0
+        tries_count = 0
         previous_test_cases, previous_error = "", ""
-        for _ in tqdm(range(3)):
-            print(f"Generating test cases - Tries: {tries + 1}")
+        for _ in tqdm(range(tries)):
+            print(f"Generating test cases - Tries: {tries_count + 1}")
             new_test_cases = generate_test_cases(solution, test_cases, previous_test_cases, previous_error).model_dump()
 
             # Test new test cases
@@ -186,7 +186,7 @@ def main():
             print(execution_result)
 
             if execution_result.error:
-                tries += 1
+                tries_count += 1
                 previous_test_cases = new_test_cases["unit_test"]
                 previous_error = execution_result.error
                 print(f"Error {previous_error}, trying again")
@@ -199,4 +199,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(tries=3)
