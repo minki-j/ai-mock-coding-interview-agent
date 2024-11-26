@@ -132,7 +132,7 @@ def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str
           "content": [
             {
               "type": "text",
-              "text": "Please generate the following leetcode algorithm additional test cases, based on provided solutions and existing test cases. Please include as much as test cases as possible. all the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file"
+              "text": "Please generate the following leetcode algorithm additional test cases, based on provided solutions and existing test cases. Please include as much as test cases as possible, and be sure to cover all edge cases. All the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file"
             }
           ]
         },
