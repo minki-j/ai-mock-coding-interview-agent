@@ -116,13 +116,101 @@ def execute_code(code_execution: CodeExecution):
 
 client = OpenAI()
 
-def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str = "", previous_error: str = ""):
+def generate_test_examples(question, constraints, existing_test_examples):
+    response = client.beta.chat.completions.parse(
+      model="gpt-4o",
+      messages=[
+          {
+          "role": "system",
+          "content": [
+            {
+              "type": "text",
+              "text": "You are an expert software tester. Your task is to generate diverse test cases for a given question with some contraints. Be creative and think outside the box to generate tricky test cases."
+            }
+          ]
+        },
+          {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": f"""<question>
+{question}
+</question>
+
+<constraints>
+{constraints}
+</constraints>
+
+<example_tests>
+{existing_test_examples}
+</example_tests>
+
+Think about all the possible cases given the constraints, which are not covered in the existing examples. Generate tricky test cases covering all corner cases inputs being empty, very large, very small etc. Output in the format shown above. Include a description of why each test case is tricky in the JSON. Remember to think outside the box to generate very hard test cases.
+"""
+            }
+          ]
+        }
+        ],
+      temperature=1,
+      max_tokens=2048,
+      top_p=1,
+      frequency_penalty=0,
+      presence_penalty=0
+    )
+
+    return response.choices[0].message.content.strip("`jsonJSON \n")
+
+def convert_examples_to_test_code(test_examples, test_code):
+    response = client.beta.chat.completions.parse(
+      model="gpt-4o",
+      messages=[
+          {
+          "role": "system",
+          "content": [
+            {
+              "type": "text",
+              "text": "You are an expert programmer. Your task is to generate test code for the test cases. All the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file."
+            }
+          ]
+        },
+          {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": f"""Here is the expected output format:
+<test_code>
+{test_code}
+</test_code>
+
+Generate working code in the above format for the test cases below:
+
+<test_examples>
+{test_examples}
+</test_examples>
+"""
+            }
+          ]
+        }
+        ],
+      temperature=1,
+      max_tokens=2048,
+      top_p=1,
+      frequency_penalty=0,
+      presence_penalty=0
+    )
+
+    return response.choices[0].message.content.strip('`python \n')
+
+def fix_test_cases(solution: str, test_cases: str, previous_test_cases: str = "", previous_error: str = ""):
 
     if previous_test_cases:
-        previous_test_cases = "\n\nPrevious test cases: \n" + previous_test_cases
+        previous_test_cases = "\nTest cases: \n" + previous_test_cases
 
     if previous_error:
-        previous_error = "\n\nPrevious error: \n" + previous_error
+        previous_error = "\nErrors: \n" + previous_error
+
 
     response = client.beta.chat.completions.parse(
       model="gpt-4o",
@@ -132,7 +220,7 @@ def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str
           "content": [
             {
               "type": "text",
-              "text": "Please generate the following leetcode algorithm additional test cases, based on provided solutions and existing test cases. Please include as much as test cases as possible, and be sure to cover all edge cases. All the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file. If there are any errors in the previous test cases, please fix them instead of generating new ones."
+              "text": "You are an expert software engineer in testing. You have been given a coding problem, a test code which has a bunch of test cases for that coding problem and some error messages from running the test cases. Modify the test cases to resolve those errors and output the resolved test code."
             }
           ]
         },
@@ -141,7 +229,7 @@ def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str
           "content": [
             {
               "type": "text",
-              "text": "Current solution: \n" + solution + "\n\nExisting test cases: \n" + test_cases + "\n\n" + previous_test_cases + previous_error
+              "text": "Current solution: \n" + solution + "\n\n" + previous_test_cases + previous_error
             }
           ]
         }
@@ -154,7 +242,7 @@ def generate_test_cases(solution: str, test_cases: str, previous_test_cases: str
       presence_penalty=0
     )
 
-    return response.choices[0].message.parsed
+    return response.choices[0].message.parsed.unit_test
 
 
 def main(tries: int = 3):
@@ -163,39 +251,52 @@ def main(tries: int = 3):
     with open("interview_data/two-sum.json", "r") as f:
         data = json.load(f)
 
-    test_cases = data["test_code"]
+    content_md = data["content_md"]
+    test_cases_code = data["test_code"]
+    question = content_md[:content_md.rfind("\n\n**Example")].strip()
+    constraints = content_md[content_md.rfind("Constraints:**"):].strip()
     solution = data["approaches"][0]["implementation_code"]
+    existing_examples = data["test_input_output"]
+    generate_tries, fix_tries = 2, 3
+    new_examples = []
+    new_test_examples_codes = []
+    if test_cases_code and solution:
+        for _ in tqdm(range(generate_tries)):
+            new_examples = generate_test_examples(question=question, constraints=constraints, existing_test_examples=existing_examples)
+            new_test_examples_code = convert_examples_to_test_code(new_examples, test_cases_code)
+            
+            tries_count = 0
+            previous_test_cases, previous_error = "", ""
+            for _ in tqdm(range(fix_tries)):
+                # Test new test cases
+                print("Testing new test cases")
+                test_code = solution + "\n\n" + new_test_examples_code
 
-    if test_cases and solution:
-        tries_count = 0
-        previous_test_cases, previous_error = "", ""
-        for _ in tqdm(range(tries)):
-            print(f"Generating test cases - Tries: {tries_count + 1}")
-            new_test_cases = generate_test_cases(solution, test_cases, previous_test_cases, previous_error).model_dump()
+                test_code_execution = CodeExecution(code=test_code)
+                formatted_code = format_code(test_code_execution)["formatted_code"]
 
-            # Test new test cases
-            print("Testing new test cases")
-            test_code = solution + "\n\n" + new_test_cases["unit_test"]
+                test_code_execution = CodeExecution(code=formatted_code)
+                execution_result = execute_code(test_code_execution)
 
-            test_code_execution = CodeExecution(code=test_code)
-            formatted_code = format_code(test_code_execution)["formatted_code"]
+                print(execution_result)
 
-            test_code_execution = CodeExecution(code=formatted_code)
-            execution_result = execute_code(test_code_execution)
+                if execution_result.error:
+                    tries_count += 1
+                    previous_test_cases = new_test_examples_code
+                    previous_error = execution_result.error
+                    print(f"Error {previous_error}, trying again")
+                else:
+                    print("No errors, breaking")
+                    break
 
-            print(execution_result)
 
-            if execution_result.error:
-                tries_count += 1
-                previous_test_cases = new_test_cases["unit_test"]
-                previous_error = execution_result.error
-                print(f"Error {previous_error}, trying again")
-            else:
-                print("No errors, breaking")
-                break
+                print(f"Fixing test cases - Tries: {tries_count + 1}")
+                new_test_examples_code = fix_test_cases(solution, new_test_examples_code, previous_test_cases, previous_error)
+            new_examples = eval(new_examples)
+            new_test_examples_codes.append(new_test_examples_code)
 
         with open("interview_data/two-sum-test-cases.json", "w") as f:
-            json.dump({"test_code": new_test_cases}, f)
+            json.dump({"test_code": new_test_examples_codes}, f)
 
 
 if __name__ == "__main__":
