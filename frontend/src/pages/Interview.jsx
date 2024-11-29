@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import PropTypes from "prop-types";
-import PythonEditor from "../components/PythonEditor";
-import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import { useContext } from "react";
+import { StageContext } from "../context/StageContext";
 import ChatContainer from "../components/ChatContainer";
+import PythonEditor from "../components/PythonEditor";
 import messageSound from "../assets/sounds/message-pop-alert.mp3";
+import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 
-const Interview = ({ setCurrentStep }) => {
+const Interview = () => {
   const { id } = useParams();
   const [interviewQuestion, setInterviewQuestion] = useState("");
   const [messages, setMessages] = useState([]);
@@ -18,9 +19,10 @@ const Interview = ({ setCurrentStep }) => {
   const [isResultsVisible, setIsResultsVisible] = useState(true);
   const isFirstRender = useRef(true);
   const skipNextCodeEditorUpdate = useRef(false);
-
+  const { currentStep, setCurrentStep, setDidUserConfirm, setNextStep } = useContext(StageContext);
   const default_imports =
     "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
+
   const executeCode = async () => {
     setTestResult("Running code...");
     try {
@@ -56,7 +58,17 @@ const Interview = ({ setCurrentStep }) => {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
         const data = await res.json();
-        setMessages(data.messages || []);
+
+        if (data.messages && data.messages.length > 1) {
+          setMessages(data.messages);
+        } else {
+          setTimeout(() => {
+            setMessages(data.messages || []);
+            const audio = new Audio(messageSound);
+            audio.play();
+          }, 2000);
+        }
+
         setCode(
           data.code_editor_state === ""
             ? data.code_snippet[0]["code"]
@@ -110,11 +122,19 @@ const Interview = ({ setCurrentStep }) => {
         sender: "AI",
       };
 
-      let current_step = data.stage;
-      if (current_step === "main") {
-        current_step = data.main_stage_step;
+      let new_step = data.stage;
+      if (new_step === "main") {
+        new_step = data.main_stage_step;
       }
-      setCurrentStep(current_step);
+
+      if (new_step !== currentStep && currentStep !== "greeting") {
+        setDidUserConfirm(false);
+        setNextStep(new_step);
+      }
+
+      if (currentStep == "greeting"){
+        setCurrentStep(new_step);
+      }
 
       setTimeout(() => {
         setMessages((prevMessages) => [...prevMessages, interviewerMessage]);
@@ -249,7 +269,7 @@ const Interview = ({ setCurrentStep }) => {
 };
 
 Interview.propTypes = {
-  setCurrentStep: PropTypes.func.isRequired,
+
 };
 
 export default Interview;

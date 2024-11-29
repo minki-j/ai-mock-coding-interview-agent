@@ -5,18 +5,22 @@ import {
   MainContainer,
   ChatContainer as ChatUI,
   MessageList,
-  Message,
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
 
-const ChatContainer = ({ messages, onSendMessage }) => {
+import ChatMessage from "./ChatMessage";
+
+const ChatContainer = ({
+  messages,
+  onSendMessage,
+}) => {
   const messageListRef = useRef(null);
 
   // Add helper function to strip HTML tags
   const stripHtmlTags = (html) => {
-    const tmp = document.createElement('div');
+    const tmp = document.createElement("div");
     tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
+    return tmp.textContent || tmp.innerText || "";
   };
 
   // Wrap onSendMessage to clean the input
@@ -34,13 +38,10 @@ const ChatContainer = ({ messages, onSendMessage }) => {
           style={{}}
         >
           {messages.map((msg, index) => (
-            <Message
+            <ChatMessage
               key={index}
-              model={{
-                ...msg,
-                direction: msg.sender === "User" ? "outgoing" : "incoming",
-                position: "single",
-              }}
+              role={msg.sender}
+              content={msg.message}
             />
           ))}
         </MessageList>
@@ -59,7 +60,7 @@ ChatContainer.propTypes = {
     sender: PropTypes.string.isRequired,
     message: PropTypes.string.isRequired
   })).isRequired,
-  onSendMessage: PropTypes.func.isRequired
+  onSendMessage: PropTypes.func.isRequired,
 };
 
 export default ChatContainer;

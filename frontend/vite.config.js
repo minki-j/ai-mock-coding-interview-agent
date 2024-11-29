@@ -20,6 +20,7 @@ const proxyEndpoints = [
   "/delete_all_history",
   "/update_code_editor_state",
   "/change_step",
+  "/revert_stage",
 ];
 
 const proxyConfig = Object.fromEntries(
