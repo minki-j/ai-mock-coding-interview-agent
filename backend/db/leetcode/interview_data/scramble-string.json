@@ -17,7 +17,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def isScramble(self, s1: str, s2: str) -> bool:\n        "
+      "code": "class Solution:\n  def isScramble(self, s1: str, s2: str) -> bool:\n        "
     }
   ],
   "exampleTestcaseList": [

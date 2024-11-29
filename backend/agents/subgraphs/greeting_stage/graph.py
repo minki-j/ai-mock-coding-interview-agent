@@ -18,16 +18,18 @@ from agents.llm_models import chat_model
 
 def greeting(state: OverallState):
     print("\n>>> NODE: greeting")
-    first_msg = f"Hello! {state.interviewee_name} How are you doing today?\n\n💡If you already know how the interview works, you can answer 'skip'.)"
+    first_msg = f"Hello {state.interviewee_name}! How are you doing today?"
+    skip_msg = "\n\n💡If you already know how the interview works, you can answer 'skip'"
     greeting_messages = [
-        """Let me explain the structure of the interview. There are two parts:
+        """The interview consists of four stages:
 
-1. Thought Process Phase: In this stage, you’ll walk me through how you would approach solving the problem.
+1. Thought Process: Explain your approach to solving the problem.
+2. Coding: Implement your solution based on that approach.
+3. Debugging: Refine your code by addressing edge cases.
+4. Algorithmic Analysis: Evaluate the time and space complexity of your solution.
 
-2. Coding Phase: In this stage, you will implement your solution based on the approach discussed.
-
-Does this make sense?""",
-        """Great! Let's begin the thought process phase.
+Does this sound clear?""",
+        """Great! Let's begin the thought process stage.
 
 Please read the interview question above carefully, and explain how you would approach the problem. Feel free to ask clarifying questions at any point 😁""",
     ]
@@ -74,17 +76,22 @@ Please read the interview question above carefully, and explain how you would ap
         chain = (
             ChatPromptTemplate.from_template(
                 """
-You just started interviewing a candidate for a software engineering role. There are three stages in this interview: greeting, thought process, and coding. You are currently in the greeting stage. You are going to greet the candidate and introduce how the interview will work. In thought process stage, you will ask the candidate to explain how they would approach solving the problem, and the candidate will answer through chat. In coding stage, the candidate will write code in the code editor that is shown in the right panel. The interview question is displayed above this chat panel.No 
+You just started interviewing a candidate for a software engineering role. There are four stages in this interview: thought process, coding, debugging, and algorithmic analysis. You are going to greet the candidate and introduce how the interview will work. In thought process stage, you will ask the candidate to explain how they would approach solving the problem, and the candidate will answer through chat. In coding stage, the candidate will write code in the code editor that is shown in the right panel. The interview question is displayed above this chat panel. No code is shown in this chat panel.
 
 ---
 
-Now you have to decide which option to use to reply to the candidate. Options are:slook 
+Now you have to decide which option to use to reply to the candidate. Options are:
 {predefined_reply}
 
 ---
 
 ## conversation
-{conversation}"""
+{conversation}
+
+---
+
+Reply to the candidate either using the predefined reply or just free-style.
+"""
             )
             | chat_model.with_structured_output(ContextualizedGreetingMessage)
         )

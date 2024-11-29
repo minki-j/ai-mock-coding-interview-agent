@@ -76,7 +76,7 @@ def detect_user_approach(state: OverallState):
                 "question": state.interview_question_md,
                 "approaches": "\n\n".join(
                     [
-                        f"#{approach['title']}: {approach['approach']}"
+                        f"## {approach['title']}\n{approach['approach']}"
                         for approach in state.interview_approaches
                     ]
                 ),

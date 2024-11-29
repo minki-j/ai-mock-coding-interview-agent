@@ -14,7 +14,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def validIPAddress(self, queryIP: str) -> str:\n        "
+      "code": "class Solution:\n  def validIPAddress(self, queryIP: str) -> str:\n        "
     }
   ],
   "exampleTestcaseList": [
