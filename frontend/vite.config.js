@@ -21,6 +21,7 @@ const proxyEndpoints = [
   "/update_code_editor_state",
   "/change_step",
   "/revert_stage",
+  "/chat_stage_introduction",
 ];
 
 const proxyConfig = Object.fromEntries(

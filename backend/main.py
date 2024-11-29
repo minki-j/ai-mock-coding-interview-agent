@@ -209,6 +209,10 @@ async def chat(data: dict):
             "test_result": data["test_result"],
         },
     )
+    
+    if data["wait_for_user_confirmation"]:
+        return None
+    
     output = main_graph.invoke(None, config)
 
     return {
@@ -475,6 +479,15 @@ async def revert_stage(data: dict):
             "stage": reverted_stage,
             "main_stage_step": reverted_main_stage_step,
         },
+    )
+
+
+@app.post("/chat_stage_introduction")
+async def chat_stage_introduction(data: dict):
+    print(f"==>> chat_stage_introduction with data: {data}")
+    main_graph.update_state(
+        {"configurable": {"thread_id": data["interview_id"]}},
+        {"messages": [AIMessage(content=data["stage_introduction_message"])]},
     )
 
 

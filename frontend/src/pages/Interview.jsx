@@ -19,7 +19,15 @@ const Interview = () => {
   const [isResultsVisible, setIsResultsVisible] = useState(true);
   const isFirstRender = useRef(true);
   const skipNextCodeEditorUpdate = useRef(false);
-  const { currentStep, setCurrentStep, setDidUserConfirm, setNextStep } = useContext(StageContext);
+  const {
+    currentStep,
+    setCurrentStep,
+    didUserConfirm,
+    setDidUserConfirm,
+    setNextStep,
+    showUserConfirmation,
+    setShowUserConfirmation,
+  } = useContext(StageContext);
   const default_imports =
     "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
 
@@ -112,9 +120,21 @@ const Interview = () => {
           interview_id: id,
           code_editor_state: code,
           test_result: testResult,
+          wait_for_user_confirmation: !didUserConfirm,
         }),
       });
+
       const data = await response.json();
+      console.log("======= data =======\n", data);
+
+      if (data === null) {
+        console.log("Waiting for user confirmation");
+        setTimeout(() => {
+          setShowUserConfirmation(true);
+        }, 1500);
+        return;
+      }
+
       const message_from_interviewer = data.message_from_interviewer;
       const interviewerMessage = {
         message: message_from_interviewer,
@@ -128,6 +148,7 @@ const Interview = () => {
       }
 
       if (new_step !== currentStep && currentStep !== "greeting") {
+        console.log("Setting didUserConfirm to false");
         setDidUserConfirm(false);
         setNextStep(new_step);
       }
@@ -215,6 +236,7 @@ const Interview = () => {
           >
             <ChatContainer
               messages={messages}
+              setMessages={setMessages}
               onSendMessage={handleSendMessage}
             />
           </div>

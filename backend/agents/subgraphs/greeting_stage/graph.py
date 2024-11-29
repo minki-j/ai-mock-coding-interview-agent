@@ -18,7 +18,7 @@ from agents.llm_models import chat_model
 
 def greeting(state: OverallState):
     print("\n>>> NODE: greeting")
-    first_msg = f"Hello {state.interviewee_name}! How are you doing today?"
+    first_msg = f"Hello {state.interviewee_name.split(' ')[0]}! How are you doing today?"
     skip_msg = "\n\n💡If you already know how the interview works, you can answer 'skip'"
     greeting_messages = [
         """The interview consists of four stages:

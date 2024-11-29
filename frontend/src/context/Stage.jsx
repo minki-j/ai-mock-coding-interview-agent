@@ -6,7 +6,8 @@ export function StageProvider({ children }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [nextStep, setNextStep] = useState(0);
   const [didUserConfirm, setDidUserConfirm] = useState(true);
-
+  const [showUserConfirmation, setShowUserConfirmation] = useState(false);
+  
   const value = {
     currentStep,
     setCurrentStep,
@@ -14,6 +15,8 @@ export function StageProvider({ children }) {
     setNextStep,
     didUserConfirm,
     setDidUserConfirm,
+    showUserConfirmation,
+    setShowUserConfirmation,
   };
 
   return (

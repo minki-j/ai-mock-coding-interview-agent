@@ -34,82 +34,67 @@ def stage_router(state: OverallState) -> bool:
         return n(greeting_stage_graph)
 
     if state.stage == "thought_process":
-        class ClassifierResponse(BaseModel):
-            rationale: str = Field(description="The rationale for the decision.")
-            should_end_thought_process: bool = Field(
-                description="Return True if the candidate has finished thinking about the problem or wants to move on to the actual interview stage, otherwise return False."
-            )
-
-        chain = ChatPromptTemplate.from_template(
-            prompts.IS_THOUGHT_PROCESS_DONE
-        ) | chat_model.with_structured_output(ClassifierResponse)
-
-        stringified_messages = "\n\n".join(
-            [
-                f">>{message.type.upper()}: {message.content}"
-                for message in state.messages[1:]
-            ]
-        )
-
-        if chain.invoke({"messages": stringified_messages}).should_end_thought_process:
-            return n(initiate_main_stage)
-        else:
-            return n(thought_process_stage_graph)
+        return n(thought_process_stage_graph)
 
     if state.stage == "main":
-        return n(main_stage_graph)
+        if state.thought_process_summary == "":
+            return n(initiate_main_stage)
+        else:
+            return n(main_stage_graph)
 
     if state.stage == "assessment":
         return n(final_assessment_stage_graph)
-    
 
 
 def initiate_main_stage(state: OverallState) -> OverallState:
     print("\n>>> NODE: initiate_main_stage")
 
-    messages_for_first_reply = "\n\n".join(
-        [
-            f">>{message.type.upper()}: {message.content}"
-            for message in state.messages[1:]
-        ]
-    )
+    # messages_for_first_reply = "\n\n".join(
+    #     [
+    #         f">>{message.type.upper()}: {message.content}"
+    #         for message in state.messages[1:]
+    #     ]
+    # )
 
     messages_for_thought_process_summary = "\n\n".join(
         [f">>{message.type.upper()}: {message.content}" for message in state.messages]
     )
 
-    def prepare_first_reply_input(inputs):
-        return {"messages": messages_for_first_reply}
+    # def prepare_first_reply_input(inputs):
+    #     return {"messages": messages_for_first_reply}
 
-    def prepare_thought_process_input(inputs):
-        return {"messages": messages_for_thought_process_summary}
+    # def prepare_thought_process_input(inputs):
+    #     return {"messages": messages_for_thought_process_summary}
 
-    first_reply_chain = (
-        ChatPromptTemplate.from_template(prompts.FIRST_REPLY_PROMPT)
-        | chat_model
-        | StrOutputParser()
-    )
+    # first_reply_chain = (
+    #     ChatPromptTemplate.from_template(prompts.FIRST_REPLY_PROMPT)
+    #     | chat_model
+    #     | StrOutputParser()
+    # )
 
-    thought_process_chain = (
+    thought_process_summarize_chain = (
         ChatPromptTemplate.from_template(prompts.THOUGHT_PROCESS_SUMMARY_PROMPT)
         | chat_model
         | StrOutputParser()
     )
 
-    parallel_chains = RunnableParallel(
-        first_reply=RunnableLambda(prepare_first_reply_input) | first_reply_chain,
-        thought_process_summary=RunnableLambda(prepare_thought_process_input)
-        | thought_process_chain,
-    )
+    # parallel_chains = RunnableParallel(
+    #     first_reply=RunnableLambda(prepare_first_reply_input) | first_reply_chain,
+    #     thought_process_summary=RunnableLambda(prepare_thought_process_input)
+    #     | thought_process_summarize_chain,
+    # )
 
-    results = parallel_chains.invoke({})
+    # results = parallel_chains.invoke({})
+
+    thought_process_summary = thought_process_summarize_chain.invoke({"messages": messages_for_thought_process_summary})
 
     return {
-        "stage": "main",
-        "main_stage_step": "coding",
-        "message_from_interviewer": results["first_reply"],
-        "messages": [AIMessage(content=results["first_reply"])],
-        "thought_process_summary": results["thought_process_summary"],
+        # "stage": "main",
+        # "main_stage_step": "coding",
+        # "message_from_interviewer": results["first_reply"],
+        # "messages": [AIMessage(content=results["first_reply"])],
+        # "thought_process_summary": results["thought_process_summary"],
+        "thought_process_summary": thought_process_summary,
     }
 
 
@@ -136,7 +121,7 @@ g.add_node(n(thought_process_stage_graph), thought_process_stage_graph)
 g.add_edge(n(thought_process_stage_graph), n(check_if_solution_is_leaked))
 
 g.add_node(initiate_main_stage)
-g.add_edge(n(initiate_main_stage), "end_of_loop")
+g.add_edge(n(initiate_main_stage), n(main_stage_graph))
 
 g.add_node(n(main_stage_graph), main_stage_graph)
 g.add_edge(n(main_stage_graph), n(check_if_solution_is_leaked))
