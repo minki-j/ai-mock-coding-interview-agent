@@ -13,7 +13,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from agents.llm_models import chat_model
 from agents.main_graph import main_graph
 from db.mongo import delete_many, find_many, find_one, insert_document
-from utils.revert_stage_or_step import revert_stage_or_step
 
 app = FastAPI(title="Python Code Execution Service")
 
@@ -465,6 +464,27 @@ async def revert_stage(data: dict):
     current_state = main_graph.get_state(
         config={"configurable": {"thread_id": data["interview_id"]}}
     ).values
+
+    def revert_stage_or_step(current_stage, current_main_stage_step):
+        reverted_stage = ""
+        reverted_main_stage_step = ""
+        
+        if current_stage == "main":
+            if current_main_stage_step == "coding":
+                reverted_stage = "thought_process"
+                reverted_main_stage_step = ""
+            else:
+                revert_step_map = {
+                    "debugging": "coding",
+                    "algorithmic_analysis": "debugging",
+                }
+                reverted_stage = "main"
+                reverted_main_stage_step = revert_step_map[current_main_stage_step]
+        elif current_stage == "assessment":
+            reverted_stage = "main"
+            reverted_main_stage_step = "algorithmic_analysis"
+
+        return reverted_stage, reverted_main_stage_step
 
     reverted_stage, reverted_main_stage_step = revert_stage_or_step(
         current_state["stage"], current_state["main_stage_step"]
