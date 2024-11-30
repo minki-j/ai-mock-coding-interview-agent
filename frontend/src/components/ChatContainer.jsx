@@ -1,4 +1,4 @@
-import { useRef, useContext } from "react";
+import { useRef, useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import PropTypes from "prop-types";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -23,28 +23,139 @@ const stageIntroductionMessages = {
 };
 
 const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
+  const [inputValue, setInputValue] = useState("");
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingDisabled, setRecordingDisabled] = useState(false);
   const { id } = useParams();
   const messageListRef = useRef(null);
   const {
     setDidUserConfirm,
     setCurrentStep,
-    currentStep,
     nextStep,
     showUserConfirmation,
     setShowUserConfirmation,
   } = useContext(StageContext);
 
-  // Add helper function to strip HTML tags
+  const fullTranscriptRef = useRef("");
+
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (!("webkitSpeechRecognition" in window)) {
+      console.error("Speech recognition is not supported in this browser");
+      return;
+    }
+
+    recognitionRef.current = new window.webkitSpeechRecognition();
+    const recognition = recognitionRef.current;
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {};
+
+    recognition.onresult = (event) => {
+      let interimTranscription = "";
+      for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal && i != event.results.length - 1) {
+          continue;
+        }
+
+        if (event.results[i].isFinal && i === event.results.length - 1) {
+          fullTranscriptRef.current += " " + event.results[i][0].transcript;
+          setInputValue(fullTranscriptRef.current.trim());
+        }
+
+        if (!event.results[i].isFinal) {
+          interimTranscription += " " + event.results[i][0].transcript;
+          setInputValue(
+            (fullTranscriptRef.current + " " + interimTranscription).trim()
+          );
+        }
+
+        if (!event.results[i].isFinal && i === event.results.length - 1) {
+          setInputValue(
+            (fullTranscriptRef.current + " " + interimTranscription).trim()
+          );
+        }
+      }
+    };
+
+    recognition.onend = () => {
+      console.log("onend");
+
+      // Only restart if we're still supposed to be listening
+      if (isRecording) {
+        console.log("Restarting recognition");
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error("Error restarting recognition:", error);
+        }
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      console.log("Stop recording");
+      setIsRecording(false);
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error("Error stopping recognition:", error);
+      }
+      toggleRecordingStyle();
+      setInputValue(
+        "Sorry, this browser does not support speech recognition. Please use the latest Chrome or Safari."
+      );
+      setRecordingDisabled(true);
+    };
+
+    // Cleanup on component unmount
+    return () => {
+      recognition.abort();
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  if (!("webkitSpeechRecognition" in window)) {
+    console.log("Speech recognition is not supported in this browser");
+    setRecordingDisabled(true);
+  }
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      console.log("Stop recording");
+      setIsRecording(false);
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error("Error stopping recognition:", error);
+      }
+      toggleRecordingStyle();
+    } else {
+      console.log("Start recording");
+      setIsRecording(true);
+      toggleRecordingStyle();
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error("Error starting recognition:", error);
+      }
+    }
+  };
+
+  const toggleRecordingStyle = () => {
+    const attachmentButton = document.querySelector(".cs-button--attachment");
+    if (attachmentButton) {
+      attachmentButton.classList.toggle("recording");
+    }
+  };
+
   const stripHtmlTags = (html) => {
     const tmp = document.createElement("div");
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || "";
-  };
-
-  // Wrap onSendMessage to clean the input
-  const handleSendMessage = (message) => {
-    const cleanMessage = stripHtmlTags(message);
-    onSendMessage(cleanMessage);
   };
 
   const handleResponse = async (accepted) => {
@@ -54,12 +165,6 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
       setShowUserConfirmation(false);
 
       const stageIntroductionMessage = stageIntroductionMessages[nextStep];
-
-      console.log(
-        "======= stageIntroductionMessage =======\n",
-        stageIntroductionMessage
-      );
-      console.log("======= nextStep =======\n", nextStep);
 
       try {
         fetch("/chat_stage_introduction", {
@@ -117,11 +222,7 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
   return (
     <MainContainer className="flex flex-col h-full">
       <ChatUI className="flex flex-col flex-1 min-h-0">
-        <MessageList
-          ref={messageListRef}
-          className="flex-1 overflow-y-auto"
-          style={{}}
-        >
+        <MessageList ref={messageListRef} className="flex-1 overflow-y-auto">
           {messages.map((msg, index) => (
             <ChatMessage key={index} role={msg.sender} content={msg.message} />
           ))}
@@ -149,9 +250,28 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
           )}
         </MessageList>
         <MessageInput
+          value={inputValue}
+          onChange={(val) => setInputValue(val)}
           placeholder="Type message here"
-          onSend={handleSendMessage}
-          attachButton={false}
+          onSend={(val) => {
+            const cleanMessage = stripHtmlTags(val);
+            onSendMessage(cleanMessage);
+            if (isRecording) {
+              try {
+                recognitionRef.current.stop();
+                setIsRecording(false);
+                toggleRecordingStyle();
+                fullTranscriptRef.current = "";
+              } catch (error) {
+                console.error("Error stopping recognition:", error);
+              }
+            }
+            setInputValue("");
+          }}
+          sendButton={true}
+          sendDisabled={false}
+          attachButton={!recordingDisabled}
+          onAttachClick={toggleRecording}
         />
       </ChatUI>
     </MainContainer>

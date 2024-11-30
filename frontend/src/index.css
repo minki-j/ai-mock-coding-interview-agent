@@ -1,3 +1,30 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+.cs-button--attachment svg {
+  /* Hide the original icon */
+  display: none;
+}
+
+.cs-button--attachment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cs-button--attachment::before {
+  content: '';
+  width: 25px;
+  height: 25px;
+  background-image: url('/src/assets/sounds/mic_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  display: block;
+  position: relative;
+}
+
+.cs-button--attachment.recording::before {
+  filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+}

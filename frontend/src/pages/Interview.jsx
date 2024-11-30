@@ -25,7 +25,6 @@ const Interview = () => {
     didUserConfirm,
     setDidUserConfirm,
     setNextStep,
-    showUserConfirmation,
     setShowUserConfirmation,
   } = useContext(StageContext);
   const default_imports =
@@ -125,7 +124,6 @@ const Interview = () => {
       });
 
       const data = await response.json();
-      console.log("======= data =======\n", data);
 
       if (data === null) {
         console.log("Waiting for user confirmation");
