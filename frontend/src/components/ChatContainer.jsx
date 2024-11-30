@@ -106,10 +106,12 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
         console.error("Error stopping recognition:", error);
       }
       toggleRecordingStyle();
-      setInputValue(
-        "Sorry, this browser does not support speech recognition. Please use the latest Chrome or Safari."
-      );
-      setRecordingDisabled(true);
+      if (event.error === "network" ) {
+        setInputValue(
+          "Sorry, this browser does not support speech recognition. Please use the latest Chrome or Safari."
+        );
+        setRecordingDisabled(true);
+      }
     };
 
     // Cleanup on component unmount

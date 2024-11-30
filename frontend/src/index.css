@@ -12,12 +12,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0 5px !important;
+  padding: 5px 2px !important;
 }
 
 .cs-button--attachment::before {
   content: '';
   width: 25px;
   height: 25px;
+  margin: 0 5px;
   background-image: url('/src/assets/sounds/mic_24dp_E8EAED_FILL0_wght400_GRAD0_opsz24.svg');
   background-size: contain;
   background-repeat: no-repeat;
@@ -25,6 +28,37 @@
   position: relative;
 }
 
+@keyframes pulsate {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 15px rgba(255, 77, 77, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+  }
+}
+
 .cs-button--attachment.recording::before {
   filter: invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%);
+
+}
+
+.cs-button--attachment.recording {
+  background-color: #ff4d4d;
+  color: white;
+  border-radius: 10%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(255, 77, 77, 0.5);
+  animation: pulsate 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.cs-button--attachment.recording:hover {
+  background-color: #ff3333;  /* Slightly darker on hover */
+  box-shadow: 0 3px 8px rgba(255, 77, 77, 0.6);
+  transform: translateY(-1px);
 }
