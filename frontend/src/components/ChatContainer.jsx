@@ -221,6 +221,12 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    setInputValue(text);
+  };
+
   return (
     <MainContainer className="flex flex-col h-full">
       <ChatUI className="flex flex-col flex-1 min-h-0">
@@ -255,6 +261,7 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
           value={inputValue}
           onChange={(val) => setInputValue(val)}
           placeholder="Type message here"
+          onPaste={handlePaste}
           onSend={(val) => {
             const cleanMessage = stripHtmlTags(val);
             onSendMessage(cleanMessage);
