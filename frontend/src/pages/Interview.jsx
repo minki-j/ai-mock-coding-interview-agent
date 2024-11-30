@@ -10,6 +10,7 @@ import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 const Interview = () => {
   const { id } = useParams();
   const [interviewQuestion, setInterviewQuestion] = useState("");
+  const [interviewTitle, setInterviewTitle] = useState("");
   const [messages, setMessages] = useState([]);
   const [code, setCode] = useState("");
   const [testCode, setTestCode] = useState("");
@@ -86,6 +87,7 @@ const Interview = () => {
           setTestResult(data.test_result);
         }
         setInterviewQuestion(data.interview_question || "");
+        setInterviewTitle(data.interview_title || "");
         let current_step = data.stage;
         if (current_step === "main") {
           current_step = data.main_stage_step;
@@ -214,7 +216,7 @@ const Interview = () => {
               onClick={() => setIsQuestionsVisible(!isQuestionsVisible)}
             >
               <span>{isQuestionsVisible ? "▼" : "▶"}</span>
-              <h2 className="font-semibold">Interview Question</h2>
+              <h2 className="font-semibold">{interviewTitle}</h2>
             </div>
             {isQuestionsVisible && (
               <div className="mt-2">

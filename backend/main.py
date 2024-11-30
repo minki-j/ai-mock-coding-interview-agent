@@ -243,6 +243,7 @@ async def get_interview(id: str):
     ]
 
     return {
+        "interview_title": state["interview_title"],
         "interview_question": state["interview_question"],
         "messages": messages,
         "code_editor_state": state["code_editor_state"],
