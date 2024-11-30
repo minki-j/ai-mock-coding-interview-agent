@@ -3,7 +3,7 @@ import CodeEditor from "@uiw/react-textarea-code-editor";
 
 const PythonEditor = ({ code, setCode, executeCode }) => {
   return (
-    <div className="relative" >
+    <div className="relative">
       <div className="flex flex-col gap-2.5">
         <div className="border border-gray-200 rounded-lg">
           <CodeEditor
@@ -12,8 +12,10 @@ const PythonEditor = ({ code, setCode, executeCode }) => {
             placeholder="Please enter Python code."
             onChange={(evn) => setCode(evn.target.value)}
             padding={15}
+            data-color-mode="light"
             style={{
               backgroundColor: "#f5f5f5",
+              fontSize: "16px",
               fontFamily:
                 "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
             }}
