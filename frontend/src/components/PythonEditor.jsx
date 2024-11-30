@@ -15,7 +15,7 @@ const PythonEditor = ({ code, setCode, executeCode }) => {
             data-color-mode="light"
             style={{
               backgroundColor: "#f5f5f5",
-              fontSize: "16px",
+              fontSize: "15px",
               fontFamily:
                 "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
             }}
