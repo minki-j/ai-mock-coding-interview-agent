@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
-from utils import revert_stage_or_step
+from utils.revert_stage_or_step import revert_stage_or_step
 
 app = FastAPI(title="Python Code Execution Service")
 
