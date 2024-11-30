@@ -1,9 +1,9 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import PropTypes from "prop-types";
 import { useState } from "react";
+import PropTypes from "prop-types";
 import ProgressTracker from "./ProgressTracker";
 
-const Layout = ({ children, currentStep, setCurrentStep }) => {
+const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -96,12 +96,7 @@ const Layout = ({ children, currentStep, setCurrentStep }) => {
             </div>
           )}
         </div>
-        {location.pathname.includes("/interview") && (
-          <ProgressTracker 
-            currentStep={currentStep} 
-            setCurrentStep={setCurrentStep}
-          />
-        )}
+        {location.pathname.includes("/interview") && <ProgressTracker />}
       </header>
       <main className="mx-auto px-4 w-full">{children}</main>
       <footer className="text-center py-4 text-gray-600 text-sm">
@@ -123,8 +118,6 @@ const Layout = ({ children, currentStep, setCurrentStep }) => {
 
 Layout.propTypes = {
   children: PropTypes.node.isRequired,
-  currentStep: PropTypes.string,
-  setCurrentStep: PropTypes.func
 };
 
 export default Layout;

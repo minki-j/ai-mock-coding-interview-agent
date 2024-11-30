@@ -34,7 +34,7 @@ The user submitted code is as
 {user_submitted_code}
 </user_submitted_code>
 
-Use these to rate the user for their Code Comprehension skills based on the rubric. Output a rationale before choosing your rating.
+Use these to rate the user for their Code Comprehension skills based on the rubric.  Use plain text instead of markdown or other formatting.
 """
 
 PROGRAMMING_ASSESSMENT_PROMPT = """You are a seasoned software engineer who is training students for their interviews. You are given the transcript of the interview and the user submiited code. Your task is to assess their "Programming" skills. Use the rebruic below to give your rating
@@ -74,7 +74,7 @@ The user submitted code is as
 {user_submitted_code}
 </user_submitted_code>
 
-Use these to rate the user for their Code Comprehension skills based on the rubric. Output a rationale before choosing your rating.
+Use these to rate the user for their Code Comprehension skills based on the rubric.  Use plain text instead of markdown or other formatting.
 """
 
 DATA_STRUCTURES_AND_ALGORITHMS_ASSESSMENT_PROMPT = """You are a seasoned software engineer who is training students for their interviews. You are given the transcript of the interview and the user submiited code. Your task is to assess their "Data Structures and Algorithms" skills. Use the rebruic below to give your rating
@@ -113,7 +113,7 @@ The user submitted code is as
 {user_submitted_code}
 </user_submitted_code>
 
-Use these to rate the user for their Code Comprehension skills based on the rubric. Output a rationale before choosing your rating.
+Use these to rate the user for their Code Comprehension skills based on the rubric.  Use plain text instead of markdown or other formatting.
 """
 
 TESTING_AND_DEBUGGING_SKILLS = """You are a seasoned software engineer who is training students for their interviews. You are given the transcript of the interview and the user submiited code. Your task is to assess their "Data Structures and Algorithms" skills. Use the rebruic below to give your rating
@@ -153,7 +153,7 @@ The user submitted code is as
 {user_submitted_code}
 </user_submitted_code>
 
-Use these to rate the user for their Code Comprehension skills based on the rubric. Output a rationale before choosing your rating.
+Use these to rate the user for their Code Comprehension skills based on the rubric.  Use plain text instead of markdown or other formatting.
 """
 
 GROWTH_MINDSET_ASSESSMENT_PROMPT = """You are a seasoned software engineer who is training students for their interviews. You are given the transcript of the interview and the user submiited code. Your task is to assess their "Growth Mindset" potential. Use the rebruic below to give your rating
@@ -195,7 +195,7 @@ The user submitted code is as
 {user_submitted_code}
 </user_submitted_code>
 
-Use these to rate the user for their Code Comprehension skills based on the rubric. Output a rationale before choosing your rating.
+Use these to rate the user for their Code Comprehension skills based on the rubric.  Use plain text instead of markdown or other formatting.
 """
 
 

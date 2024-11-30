@@ -12,13 +12,13 @@ def check_if_solution_is_leaked(state: OverallState):
 
     class SolutionEliminationResponse(BaseModel):
         rationale: str = Field(
-            description="Think out loud and step by step about whether the solution is revealed in the feedback."
+            description="Think out loud and step by step about whether the solution is revealed in the reply."
         )
         is_solution_revealed: bool = Field(
-            description="Whether the solution is revealed in the feedback."
+            description="Whether the solution is revealed in the reply."
         )
-        amended_feedback: str = Field(
-            description="If solution is revealed, amend the feedback so that the solution is not revealed. If the solution is not revealed, return an empty string."
+        amended_reply: str = Field(
+            description="If solution is revealed, amend the reply so that the solution is not revealed. If the solution is not revealed, return an empty string."
         )
 
     validation_result = (
@@ -28,16 +28,17 @@ def check_if_solution_is_leaked(state: OverallState):
         {
             "question": state.interview_question_md,
             "solution": state.user_approach,
-            "feedback": state.message_from_interviewer,
+            "conversation": state.stringify_messages(),
+            "reply_from_the_ai_interviewer": state.message_from_interviewer,
         }
     )
 
     if validation_result.is_solution_revealed:
         return {
-            "message_from_interviewer": validation_result.amended_feedback,
+            "message_from_interviewer": validation_result.amended_reply,
             "messages": [
                 RemoveMessage(id=state.messages[-1].id),
-                AIMessage(content=validation_result.amended_feedback),
+                AIMessage(content=validation_result.amended_reply),
             ],
         }
     else:

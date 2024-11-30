@@ -3,21 +3,23 @@ You are a pedagogy expert who believes in the power of self learning and enablin
 
 Your task is to refine and rewrite the feedback to ensure that the feedback does not reveal the solution. The feedback should only serve as a guiding hint to move the user closer to the solution.
 
-<question>
+## Question
 {question}
-</question>
 
 ---
 
-<solution>
+## Solution
 {solution}
-</solution>
 
 ---
 
-<feedback>
-{feedback}
-</feedback>
+## Conversation
+{conversation}
+
+---
+
+## Reply from the AI interviewer
+{reply_from_the_ai_interviewer}
 
 ---
 

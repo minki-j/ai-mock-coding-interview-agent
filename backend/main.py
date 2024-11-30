@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from langchain_core.messages import AIMessage, HumanMessage
 from langchain_core.prompts import ChatPromptTemplate
 from pydantic import BaseModel, Field
+from utils import revert_stage_or_step
 
 app = FastAPI(title="Python Code Execution Service")
 
@@ -208,6 +209,10 @@ async def chat(data: dict):
             "test_result": data["test_result"],
         },
     )
+    
+    if data["wait_for_user_confirmation"]:
+        return None
+    
     output = main_graph.invoke(None, config)
 
     return {
@@ -451,8 +456,39 @@ async def change_step(data: dict):
         stage = step
         main_graph.update_state(
             {"configurable": {"thread_id": data["interview_id"]}},
-            {"stage": stage, "main_stage_step": "coding"},  # only change stage and set main_stage_step default 
+            {
+                "stage": stage,
+                "main_stage_step": "coding",
+            },  # only change stage and set main_stage_step default
         )
+
+
+@app.post("/revert_stage")
+async def revert_stage(data: dict):
+    current_state = main_graph.get_state(
+        config={"configurable": {"thread_id": data["interview_id"]}}
+    ).values
+
+    reverted_stage, reverted_main_stage_step = revert_stage_or_step(
+        current_state["stage"], current_state["main_stage_step"]
+    )
+    print(f"==>> reverted_stage: {reverted_stage}, reverted_main_stage_step: {reverted_main_stage_step}")
+    main_graph.update_state(
+        {"configurable": {"thread_id": data["interview_id"]}},
+        {
+            "stage": reverted_stage,
+            "main_stage_step": reverted_main_stage_step,
+        },
+    )
+
+
+@app.post("/chat_stage_introduction")
+async def chat_stage_introduction(data: dict):
+    print(f"==>> chat_stage_introduction with data: {data}")
+    main_graph.update_state(
+        {"configurable": {"thread_id": data["interview_id"]}},
+        {"messages": [AIMessage(content=data["stage_introduction_message"])]},
+    )
 
 
 @app.get("/health")

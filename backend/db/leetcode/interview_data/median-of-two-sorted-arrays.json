@@ -20,7 +20,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:\n        "
+      "code": "class Solution:\n  def findMedianSortedArrays(self, nums1: List[int], nums2: List[int]) -> float:\n        "
     }
   ],
   "exampleTestcaseList": [

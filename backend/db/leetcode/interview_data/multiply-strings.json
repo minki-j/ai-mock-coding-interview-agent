@@ -20,7 +20,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def multiply(self, num1: str, num2: str) -> str:\n        "
+      "code": "class Solution:\n  def multiply(self, num1: str, num2: str) -> str:\n        "
     }
   ],
   "exampleTestcaseList": [

@@ -20,7 +20,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def isMatch(self, s: str, p: str) -> bool:\n        "
+      "code": "class Solution:\n  def isMatch(self, s: str, p: str) -> bool:\n        "
     }
   ],
   "exampleTestcaseList": [

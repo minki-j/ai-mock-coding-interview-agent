@@ -17,7 +17,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def longestCommonPrefix(self, strs: List[str]) -> str:\n        "
+      "code": "class Solution:\n  def longestCommonPrefix(self, strs: List[str]) -> str:\n        "
     }
   ],
   "exampleTestcaseList": [

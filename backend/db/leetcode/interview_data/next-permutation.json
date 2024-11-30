@@ -17,7 +17,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def nextPermutation(self, nums: List[int]) -> None:\n        \"\"\"\n        Do not return anything, modify nums in-place instead.\n        \"\"\"\n        "
+      "code": "class Solution:\n  def nextPermutation(self, nums: List[int]) -> None:\n        \"\"\"\n        Do not return anything, modify nums in-place instead.\n        \"\"\"\n        "
     }
   ],
   "exampleTestcaseList": [

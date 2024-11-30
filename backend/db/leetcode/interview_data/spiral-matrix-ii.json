@@ -20,7 +20,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n    def generateMatrix(self, n: int) -> List[List[int]]:\n        "
+      "code": "class Solution:\n  def generateMatrix(self, n: int) -> List[List[int]]:\n        "
     }
   ],
   "exampleTestcaseList": [

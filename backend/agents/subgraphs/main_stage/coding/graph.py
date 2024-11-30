@@ -26,7 +26,7 @@ class CodeFeedbackAgentPrivateState(BaseModel):
 def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState:
     if state.user_approach == "":
         user_approach = "\n".join(
-            [json.dumps(approach) for approach in state.approaches]
+            [json.dumps(approach) for approach in state.interview_approaches]
         )
     else:
         user_approach = state.user_approach
