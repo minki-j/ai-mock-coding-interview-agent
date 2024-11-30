@@ -1,13 +1,10 @@
-import os
 from varname import nameof as n
 from pydantic import BaseModel, Field
 
 from langgraph.graph import START, END, StateGraph
 
-from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import  AIMessage
 
 from agents.state_schema import OverallState
 from agents.subgraphs.thought_process_stage.prompts import default_system_message
@@ -19,19 +16,9 @@ from agents.llm_models import chat_model
 def greeting(state: OverallState):
     print("\n>>> NODE: greeting")
     first_msg = f"Hello {state.interviewee_name.split(' ')[0]}! How are you doing today?"
-    skip_msg = "\n\n💡If you already know how the interview works, you can answer 'skip'"
     greeting_messages = [
-        """The interview consists of four stages:
-
-1. Thought Process: Explain your approach to solving the problem.
-2. Coding: Implement your solution based on that approach.
-3. Debugging: Refine your code by addressing edge cases.
-4. Algorithmic Analysis: Evaluate the time and space complexity of your solution.
-
-Does this sound clear?""",
-        """Great! Let's begin the thought process stage.
-
-Please read the interview question above carefully, and explain how you would approach the problem. Feel free to ask clarifying questions at any point 😁""",
+        "The interview will have four stages:\n\n1. **Thought Process**: Walk me through your approach to solving the problem.\n2. **Coding**: Write code to implement your solution based on that approach.\n3. **Debugging**: Address edge cases and refine your code for accuracy.\n4. **Algorithmic Analysis**: Analyze the time and space complexity of your solution.\n\nDoes that sound clear to you?",
+        "Great! Let's begin the thought process stage.\nPlease read the interview question above carefully, and explain how you would approach the problem. Feel free to ask clarifying questions at any point 😁",
     ]
 
     if len(state.messages) == 0:
@@ -44,10 +31,7 @@ Please read the interview question above carefully, and explain how you would ap
             ],
         }
     else:
-        if (
-            len(state.messages) > 1
-            and state.messages[-1].content.strip().lower() == "skip"
-        ):
+        if state.messages[-1].content.strip().lower() == "skip":
             greeting_msg_index = -1
             return {
                 "message_from_interviewer": greeting_messages[greeting_msg_index],
@@ -76,7 +60,11 @@ Please read the interview question above carefully, and explain how you would ap
         chain = (
             ChatPromptTemplate.from_template(
                 """
-You just started interviewing a candidate for a software engineering role. There are four stages in this interview: thought process, coding, debugging, and algorithmic analysis. You are going to greet the candidate and introduce how the interview will work. In thought process stage, you will ask the candidate to explain how they would approach solving the problem, and the candidate will answer through chat. In coding stage, the candidate will write code in the code editor that is shown in the right panel. The interview question is displayed above this chat panel. No code is shown in this chat panel.
+You just started interviewing a candidate for a software engineering role. There are four stages in this interview: thought process, coding, debugging, and algorithmic analysis. You are going to greet the candidate and introduce how the interview will work. 
+
+In thought process stage, you will ask the candidate to explain how they would approach solving the problem, and the candidate will answer through chat. In coding stage, the candidate will write code in the code editor that is shown in the right panel. In debugging stage, you will ask the candidate to address edge cases and refine their code for accuracy. In algorithmic analysis stage, you will analyze the time and space complexity of the candidate's solution. 
+
+The interview question is displayed above this chat panel.
 
 ---
 
@@ -90,7 +78,19 @@ Now you have to decide which option to use to reply to the candidate. Options ar
 
 ---
 
-Reply to the candidate either using the predefined reply or just free-style.
+You need to decide whether to use the predefined reply or create a free-style response:
+
+1. If the predefined reply fits the conversation flow:
+   - Set should_use_predefined_reply to True
+   - Modify the predefined reply in amended_predefined_reply to acknowledge and respond to the candidate's latest message
+   - Leave free_reply empty
+
+2. If the predefined reply doesn't fit:
+   - Set should_use_predefined_reply to False 
+   - Create an appropriate free-style response in free_reply that maintains the interview flow
+   - Leave amended_predefined_reply empty
+
+Provide clear rationale for your decision in the rationale field.
 """
             )
             | chat_model.with_structured_output(ContextualizedGreetingMessage)
