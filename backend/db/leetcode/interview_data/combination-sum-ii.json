@@ -17,7 +17,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n  def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:\n        "
+      "code": "class Solution:\n  def combinationSum2(self, candidates: List[int], target: int) -> List[List[int]]:\n    "
     }
   ],
   "exampleTestcaseList": [

@@ -20,7 +20,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n  def fourSum(self, nums: List[int], target: int) -> List[List[int]]:\n        "
+      "code": "class Solution:\n  def fourSum(self, nums: List[int], target: int) -> List[List[int]]:\n    "
     }
   ],
   "exampleTestcaseList": [

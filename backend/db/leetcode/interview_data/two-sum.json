@@ -17,7 +17,7 @@
     {
       "lang": "Python3",
       "langSlug": "python3",
-      "code": "class Solution:\n  def twoSum(self, nums: List[int], target: int) -> List[int]:\n        "
+      "code": "class Solution:\n  def twoSum(self, nums: List[int], target: int) -> List[int]:\n    "
     }
   ],
   "exampleTestcaseList": [
