@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import PropTypes from 'prop-types';
+import { useRef, useState, useEffect } from "react";
+import PropTypes from "prop-types";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
   MainContainer,
@@ -8,71 +8,139 @@ import {
   Message,
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
-import VoiceInput from './VoiceInput';
 
 const ChatContainer = ({ messages, onSendMessage }) => {
-  const messageListRef = useRef(null);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const fullTranscriptRef = useRef('');
-  const interimTranscriptRef = useRef('');
+
+  const messageListRef = useRef(null);
+
+  const fullTranscriptRef = useRef("");
+  const interimTranscriptRef = useRef("");
+
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (!("webkitSpeechRecognition" in window)) {
+      console.error("Speech recognition is not supported in this browser");
+      return;
+    }
+
+    recognitionRef.current = new window.webkitSpeechRecognition();
+    const recognition = recognitionRef.current;
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {};
+
+    recognition.onresult = (event) => {
+      let interimTranscript = "";
+      let finalTranscript = "";
+
+      for (let i = 0; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + " ";
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        handleTranscriptionComplete(finalTranscript.trim(), true);
+      }
+      if (interimTranscript) {
+        handleTranscriptionComplete(interimTranscript.trim(), false);
+      }
+    };
+
+    recognition.onend = () => {
+      // Only restart if we're still supposed to be listening
+      if (isRecording) {
+        console.log("Restarting recognition");
+        try {
+          recognition.start();
+        } catch (error) {
+          console.error("Error restarting recognition:", error);
+        }
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      toggleRecording();
+    };
+
+    // Cleanup on component unmount
+    return () => {
+      recognition.abort();
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  if (!("webkitSpeechRecognition" in window)) {
+    return null;
+  }
 
   const handleTranscriptionComplete = (transcript, isFinal) => {
-    console.log('Transcription received:', { transcript, isFinal }); // Debug log
-    
     if (isFinal) {
       // Add to full transcript and clear interim
-      fullTranscriptRef.current += ' ' + transcript;
-      interimTranscriptRef.current = '';
+      fullTranscriptRef.current += " " + transcript;
+      interimTranscriptRef.current = "";
       setInputValue(fullTranscriptRef.current.trim());
     } else {
       // Update interim transcript
       interimTranscriptRef.current = transcript;
       // Combine full transcript with interim
-      setInputValue((fullTranscriptRef.current + ' ' + interimTranscriptRef.current).trim());
+      setInputValue(
+        (fullTranscriptRef.current + " " + interimTranscriptRef.current).trim()
+      );
     }
   };
 
-  const handleStartRecording = () => {
-    console.log('Starting recording'); // Debug log
-    setIsRecording(true);
-    fullTranscriptRef.current = '';
-    interimTranscriptRef.current = '';
-    setInputValue('');
+  const toggleRecording = () => {
+    if (isRecording) {
+      console.log("Stop recording");
+      setIsRecording(false);
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error("Error stopping recognition:", error);
+      }
+      toggleRecordingStyle();
+      interimTranscriptRef.current = "";
+    } else {
+      console.log("Start recording");
+      setIsRecording(true);
+      toggleRecordingStyle();
+      fullTranscriptRef.current = "";
+      interimTranscriptRef.current = "";
+      try {
+        recognitionRef.current.start();
+      } catch (error) {
+        console.error("Error starting recognition:", error);
+      }
+    }
   };
 
-  const handleStopRecording = () => {
-    console.log('Stopping recording'); // Debug log
-    setIsRecording(false);
-    interimTranscriptRef.current = '';
+  const toggleRecordingStyle = () => {
+    const attachmentButton = document.querySelector(".cs-button--attachment");
+    if (attachmentButton) {
+      attachmentButton.classList.toggle("recording");
+    }
   };
 
-  // Add helper function to strip HTML tags
   const stripHtmlTags = (html) => {
-    const tmp = document.createElement('div');
+    const tmp = document.createElement("div");
     tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || '';
-  };
-
-  // Wrap onSendMessage to clean the input
-  const handleSendMessage = (message) => {
-    const cleanMessage = stripHtmlTags(message);
-    onSendMessage(cleanMessage);
+    return tmp.textContent || tmp.innerText || "";
   };
 
   return (
     <MainContainer className="flex flex-col h-full">
-      <VoiceInput 
-        onTranscriptionComplete={handleTranscriptionComplete}
-        onStart={handleStartRecording}
-        onStop={handleStopRecording}
-        isRecording={isRecording}
-      />
       <ChatUI className="flex flex-col flex-1 min-h-0">
-        <MessageList
-          ref={messageListRef}
-          className="flex-1 overflow-y-auto"
-        >
+        <MessageList ref={messageListRef} className="flex-1 overflow-y-auto">
           {messages.map((msg, index) => (
             <Message
               key={index}
@@ -86,15 +154,17 @@ const ChatContainer = ({ messages, onSendMessage }) => {
         </MessageList>
         <MessageInput
           value={inputValue}
-          onChange={val => setInputValue(val)}
+          onChange={(val) => setInputValue(val)}
           placeholder="Type message here"
           onSend={(val) => {
-            onSendMessage(val);
-            setInputValue('');
-            fullTranscriptRef.current = '';
+            const cleanMessage = stripHtmlTags(val);
+            onSendMessage(cleanMessage);
+            setInputValue("");
+            fullTranscriptRef.current = "";
             setIsRecording(false);
           }}
-          attachButton={false}
+          attachButton={true}
+          onAttachClick={toggleRecording}
         />
       </ChatUI>
     </MainContainer>
@@ -102,11 +172,13 @@ const ChatContainer = ({ messages, onSendMessage }) => {
 };
 
 ChatContainer.propTypes = {
-  messages: PropTypes.arrayOf(PropTypes.shape({
-    sender: PropTypes.string.isRequired,
-    message: PropTypes.string.isRequired
-  })).isRequired,
-  onSendMessage: PropTypes.func.isRequired
+  messages: PropTypes.arrayOf(
+    PropTypes.shape({
+      sender: PropTypes.string.isRequired,
+      message: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSendMessage: PropTypes.func.isRequired,
 };
 
 export default ChatContainer;
