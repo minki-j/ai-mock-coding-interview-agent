@@ -21,6 +21,8 @@ const ChatContainer = ({ messages, onSendMessage }) => {
   const recognitionRef = useRef(null);
 
   useEffect(() => {
+    console.log(window);
+    
     if (!("webkitSpeechRecognition" in window)) {
       console.error("Speech recognition is not supported in this browser");
       return;
@@ -70,7 +72,16 @@ const ChatContainer = ({ messages, onSendMessage }) => {
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
-      toggleRecording();
+      console.log("Stop recording");
+      setIsRecording(false);
+      try {
+        recognitionRef.current.stop();
+      } catch (error) {
+        console.error("Error stopping recognition:", error);
+      }
+      toggleRecordingStyle();
+      interimTranscriptRef.current = "";
+      setInputValue("Sorry, this browser does not support speech recognition. Please use the latest Chrome or Safari.");
     };
 
     // Cleanup on component unmount
@@ -80,6 +91,7 @@ const ChatContainer = ({ messages, onSendMessage }) => {
   }, []); // Empty dependency array - only run once on mount
 
   if (!("webkitSpeechRecognition" in window)) {
+    console.log("Speech recognition is not supported in this browser");
     return null;
   }
 
