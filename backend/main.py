@@ -191,40 +191,25 @@ async def init_interview(interview_info: dict):
     return {"interview_id": str(interview_id)}
 
 
-def get_deepest_state(state):
-    print("==>> get_deepest_state: ", state.tasks)
-    # Base case: if no tasks attribute or empty tasks
-    if not hasattr(state, "tasks") or not state.tasks or not state.tasks[0].state:
-        print("stop recursion")
-        return state
-
-    # Recursive case: go deeper into tasks[0].state
-    next_state = state.tasks[0].state
-    print("one level deeper")
-    return get_deepest_state(next_state)
-
-
 @app.post("/chat")
 async def chat(data: dict):
-    config = {
-        "configurable": {"thread_id": data["interview_id"]},
-        "recursion_limit": 100,
-    }
+    def get_deepest_state(state):
+        # Base case
+        if len(state.tasks) == 0 or not state.tasks[0].state:
+            return state
 
-    state = main_graph.get_state(config, subgraphs=True)
+        # Recursive case
+        next_level_state = state.tasks[0].state
+        return get_deepest_state(next_level_state)
 
-    deepest_state = get_deepest_state(state)
-    display_decision = deepest_state.values.get("display_decision")
+    config = {"configurable": {"thread_id": data["interview_id"]}}
 
-    if display_decision:
-        print("==>> display_decision: ", display_decision)
-        # If there is an interrupted node, we don't need to update the state.
-        pass
-    else:
-        print("==>> display_decision is empty")
-        # If there is no interrupted subgraph, update the state
+    if not data["is_first_fetch_done"]:
+        # Update the user message and code editor state for the first fetch
         update_input = {
-            "messages": [HumanMessage(content=data["message"])] if data["message"] else [],
+            "messages": (
+                [HumanMessage(content=data["message"])] if data["message"] else []
+            ),
             "code_editor_state": data["code_editor_state"],
             "test_result": data["test_result"],
         }
@@ -237,16 +222,22 @@ async def chat(data: dict):
 
     output = main_graph.invoke(None, config)
 
+    # Get the deepest state's display_decision value
     state = main_graph.get_state(config, subgraphs=True)
+    deepest_state = get_deepest_state(state)
+    display_decision = deepest_state.values.get("display_decision")
 
     if display_decision:
-        # If the graph is interrupted, display the agent's decision, return it
+        # If display_decision is not empty, it means that the graph is interrupted.
+        # update the graph with an empty display_decision to clear the interrupted subgraph
+        # Return the display_decision to the frontend to display it
         main_graph.update_state(deepest_state.config, {"display_decision": ""})
         return {
             "display_decision": display_decision,
         }
     else:
-        # If the graph is not interrupted in subgraph level, return message and updated stage
+        # If display_decision is empty, it means that the graph is reached the end
+        # Return the message and updated stage to the frontend
         return {
             "message_from_interviewer": output["message_from_interviewer"],
             "stage": output["stage"],
@@ -540,11 +531,12 @@ async def revert_stage(data: dict):
 
 @app.post("/chat_stage_introduction")
 async def chat_stage_introduction(data: dict):
-    print(f"==>> chat_stage_introduction with data: {data}")
+    config = {"configurable": {"thread_id": data["interview_id"]}}
     main_graph.update_state(
-        {"configurable": {"thread_id": data["interview_id"]}},
+        config,
         {"messages": [AIMessage(content=data["stage_introduction_message"])]},
     )
+
 
 
 @app.get("/health")
