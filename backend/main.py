@@ -200,16 +200,26 @@ async def chat(data: dict):
     main_graph.update_state(
         config,
         {
-            "messages": [HumanMessage(content=data["message"])],
+            "messages": [HumanMessage(content=data["message"])], #TODO: This gets duplicated
             "code_editor_state": data["code_editor_state"],
             "test_result": data["test_result"],
         },
     )
-    
+
     if data["wait_for_user_confirmation"]:
         return None
-    
+
     output = main_graph.invoke(None, config)
+
+    state = main_graph.get_state(config, subgraphs=True)
+
+    if state.tasks and state.tasks[0].state and state.tasks[0].state.values:
+        display_decision = state.tasks[0].state.values.get("display_decision")
+        print(f"==>> display_decision: {display_decision}")
+        if display_decision:
+            return {
+                "display_decision": display_decision,
+        }
 
     return {
         "message_from_interviewer": output["message_from_interviewer"],

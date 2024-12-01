@@ -111,23 +111,44 @@ const Interview = () => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
     try {
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: message,
-          interview_id: id,
-          code_editor_state: code,
-          test_result: testResult,
-          wait_for_user_confirmation: !didUserConfirm,
-        }),
-      });
+      let count = 1;
+      let allDecisionsMade = false;
+      let finalResponse = null;
+      while (!allDecisionsMade && count <= 2) {
+        console.log("count:", count);
+        count += 1;
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: message,
+            interview_id: id,
+            code_editor_state: code,
+            test_result: testResult,
+            wait_for_user_confirmation: !didUserConfirm,
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (data === null) {
+        if (!data.display_decision) {
+          allDecisionsMade = true;
+          finalResponse = data;
+        } else {
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              message: data.display_decision,
+              sentTime: new Date().toISOString(),
+              sender: "AI",
+            },
+          ]);
+        }
+      }
+
+      if (finalResponse === null) {
         console.log("Waiting for user confirmation");
         setTimeout(() => {
           setShowUserConfirmation(true);
@@ -135,16 +156,16 @@ const Interview = () => {
         return;
       }
 
-      const message_from_interviewer = data.message_from_interviewer;
+      const message_from_interviewer = finalResponse.message_from_interviewer;
       const interviewerMessage = {
         message: message_from_interviewer,
         sentTime: new Date().toISOString(),
         sender: "AI",
       };
 
-      let new_step = data.stage;
+      let new_step = finalResponse.stage;
       if (new_step === "main") {
-        new_step = data.main_stage_step;
+        new_step = finalResponse.main_stage_step;
       }
 
       if (new_step !== currentStep && currentStep !== "greeting") {
@@ -153,7 +174,7 @@ const Interview = () => {
         setNextStep(new_step);
       }
 
-      if (currentStep == "greeting"){
+      if (currentStep == "greeting") {
         setCurrentStep(new_step);
       }
 
@@ -290,8 +311,6 @@ const Interview = () => {
   );
 };
 
-Interview.propTypes = {
-
-};
+Interview.propTypes = {};
 
 export default Interview;

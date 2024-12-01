@@ -4,7 +4,7 @@ from enum import Enum
 from varname import nameof as n
 
 from langgraph.graph import START, END, StateGraph
-
+from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -28,7 +28,8 @@ def is_user_approach_known(state: OverallState):
 def approach_based_reply(state: OverallState):
     print("\n>>> NODE: approach_based_reply")
     response = (
-        ChatPromptTemplate.from_template(prompts.GIVE_APPROACH_SPEIFIC_HINT) | chat_model
+        ChatPromptTemplate.from_template(prompts.GIVE_APPROACH_SPEIFIC_HINT)
+        | chat_model
     ).invoke(
         {
             "question": state.interview_question_md,
@@ -93,9 +94,17 @@ def detect_user_approach(state: OverallState):
     )
 
     if user_approach_dict is None:
-        return {"user_approach": "unknown"}
+        print("==>> display_decision: unknown")
+        return {
+            "user_approach": "unknown",
+            "display_decision": "unknown",
+        }
 
-    return {"user_approach": json.dumps(user_approach_dict)}
+    print(f"==>> display_decision: {user_approach_dict['title']}")
+    return {
+        "user_approach": json.dumps(user_approach_dict),
+        "display_decision": user_approach_dict["title"],
+    }
 
 
 def general_reply(state: OverallState):
@@ -145,7 +154,10 @@ g = StateGraph(OverallState)
 g.add_edge(START, n(detect_user_approach))
 
 g.add_node(detect_user_approach)
-g.add_edge(n(detect_user_approach), n(is_user_approach_known))
+g.add_edge(n(detect_user_approach), "display_decision_node")
+
+g.add_node("display_decision_node", lambda _: {"display_decision": ""})
+g.add_edge("display_decision_node", n(is_user_approach_known))
 
 g.add_node(n(is_user_approach_known), RunnablePassthrough())
 g.add_conditional_edges(
@@ -163,4 +175,7 @@ g.add_edge(n(general_reply), n(is_thought_process_done))
 g.add_node(is_thought_process_done)
 g.add_edge(n(is_thought_process_done), END)
 
-thought_process_stage_graph = g.compile()
+
+thought_process_stage_graph = g.compile(
+    checkpointer=MemorySaver(), interrupt_before=["display_decision_node"]
+)
