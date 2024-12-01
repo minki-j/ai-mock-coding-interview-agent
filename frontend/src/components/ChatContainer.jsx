@@ -311,6 +311,7 @@ ChatContainer.propTypes = {
   ).isRequired,
   setMessages: PropTypes.func.isRequired,
   onSendMessage: PropTypes.func.isRequired,
+  handleSendMessage: PropTypes.func.isRequired,
 };
 
 export default ChatContainer;

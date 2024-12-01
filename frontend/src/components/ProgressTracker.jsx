@@ -16,6 +16,18 @@ const ProgressTracker = () => {
   ];
 
   const handleStepClick = async (step) => {
+    const currentStepIndex = steps.findIndex((s) => s.code === currentStep);
+    const clickedStepIndex = steps.findIndex((s) => s.code === step);
+
+    // Check if trying to skip more than one step forward
+    if (
+      clickedStepIndex > currentStepIndex + 1 ||
+      clickedStepIndex < currentStepIndex - 1
+    ) {
+      alert("You can only move 1 step at a time!");
+      return;
+    }
+
     const response = await fetch("/change_step", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -45,6 +57,7 @@ const ProgressTracker = () => {
             <div
               style={chevronStyle}
               onClick={() => handleStepClick(step.code)}
+              title="Click to move step"
               className={`flex items-center justify-center px-6 h-full hover:cursor-pointer 
                 transform transition-transform duration-100 hover:-translate-y-1
                 ${

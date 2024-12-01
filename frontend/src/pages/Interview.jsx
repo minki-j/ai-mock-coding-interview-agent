@@ -244,6 +244,7 @@ const Interview = () => {
           >
             <div
               className="flex gap-2 items-center cursor-pointer"
+              title="Click to collapse or expand"
               onClick={() => setIsQuestionsVisible(!isQuestionsVisible)}
             >
               <span>{isQuestionsVisible ? "▼" : "▶"}</span>
@@ -284,6 +285,7 @@ const Interview = () => {
           >
             <div
               className="flex gap-2 items-center cursor-pointer"
+              title="Click to collapse or expand"
               onClick={() => setIsEditorVisible(!isEditorVisible)}
             >
               <span>{isEditorVisible ? "▼" : "▶"}</span>
@@ -307,6 +309,7 @@ const Interview = () => {
           >
             <div
               className="flex gap-2 items-center cursor-pointer"
+              title="Click to collapse or expand"
               onClick={() => setIsResultsVisible(!isResultsVisible)}
             >
               <span>{isResultsVisible ? "▼" : "▶"}</span>

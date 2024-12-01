@@ -85,7 +85,7 @@ const Layout = ({ children }) => {
               )}
             </div>
           </div>
-          {location.pathname.includes("/interview") && (
+          {/* {location.pathname.includes("/interview") && (
             <div className="flex">
               <button
                 className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
@@ -94,7 +94,7 @@ const Layout = ({ children }) => {
                 Submit
               </button>
             </div>
-          )}
+          )} */}
         </div>
         {location.pathname.includes("/interview") && <ProgressTracker />}
       </header>
