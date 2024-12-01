@@ -9,6 +9,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
 from langchain_core.messages import AIMessage
+from langgraph.checkpoint.memory import MemorySaver
 
 from agents.llm_models import chat_model
 
@@ -52,6 +53,7 @@ def assess_code_with_correct_solution(state: CodeFeedbackAgentPrivateState):
     )
 
     return {
+        "display_decision": "Analyzing your solution against best practices and optimal approaches",
         "assessment_result": response.content,
     }
 
@@ -70,6 +72,7 @@ def generate_feedback(state: CodeFeedbackAgentPrivateState) -> OverallState:
     )
 
     return {
+        "display_decision": "Generated feedback based on the assessment.",
         "message_from_interviewer": reply.content,
         "messages": [reply],
     }
@@ -91,4 +94,10 @@ g.add_edge("rendezvous", n(generate_feedback))
 g.add_node(generate_feedback)
 g.add_edge(n(generate_feedback), END)
 
-coding_step_graph = g.compile()
+coding_step_graph = g.compile(
+    checkpointer=MemorySaver(),
+    interrupt_after=[
+        n(assess_code_with_correct_solution),
+        n(generate_feedback),
+    ],
+)

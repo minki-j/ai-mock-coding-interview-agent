@@ -86,7 +86,9 @@ def initiate_main_stage(state: OverallState) -> OverallState:
 
     # results = parallel_chains.invoke({})
 
-    thought_process_summary = thought_process_summarize_chain.invoke({"messages": messages_for_thought_process_summary})
+    thought_process_summary = thought_process_summarize_chain.invoke(
+        {"messages": messages_for_thought_process_summary}
+    )
 
     return {
         # "stage": "main",
@@ -140,7 +142,13 @@ db_path = os.path.join(".", "data", "graph_checkpoints", "checkpoints.sqlite")
 conn = sqlite3.connect(db_path, check_same_thread=False)
 memory = SqliteSaver(conn)
 
-main_graph = g.compile(checkpointer=memory, interrupt_before=["end_of_loop"])
+main_graph = g.compile(
+    checkpointer=memory,
+    interrupt_after=[
+        "end_of_loop",
+        n(check_if_solution_is_leaked),
+    ],
+)
 
 with open("./agents/graph_diagrams/main_graph.png", "wb") as f:
     f.write(main_graph.get_graph(xray=1).draw_mermaid_png())

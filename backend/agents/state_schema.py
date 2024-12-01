@@ -45,6 +45,8 @@ class OutputState(BaseModel):
     main_stage_step: Literal["coding", "debugging", "algorithmic_analysis"] = Field(
         default="coding"
     )
+    display_decision: str = Field(default="")
+
 
 class OverallState(InputState, OutputState):
     greeting_msg_index: int = Field(default=0)

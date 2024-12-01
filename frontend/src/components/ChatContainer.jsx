@@ -20,9 +20,16 @@ const stageIntroductionMessages = {
     "Welcome to the debugging stage! Let's get started. Read your solution carefully and identify if there are any edge cases that you might have missed.",
   algorithmic_analysis:
     "Welcome to the algorithmic analysis stage! Let's get started. Please explain time and space complexity of your solution.",
+  assessment:
+    "Well done! You've completed the interview. Now, I'll analyze our conversation and your solution. Please wait for a moment ☺️",
 };
 
-const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
+const ChatContainer = ({
+  messages,
+  setMessages,
+  onSendMessage,
+  handleSendMessage,
+}) => {
   const [inputValue, setInputValue] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recordingDisabled, setRecordingDisabled] = useState(false);
@@ -106,7 +113,7 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
         console.error("Error stopping recognition:", error);
       }
       toggleRecordingStyle();
-      if (event.error === "network" ) {
+      if (event.error === "network") {
         setInputValue(
           "Sorry, this browser does not support speech recognition. Please use the latest Chrome or Safari."
         );
@@ -162,25 +169,28 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
 
   const handleResponse = async (accepted) => {
     if (accepted) {
-      setCurrentStep(nextStep);
-      setDidUserConfirm(true);
-      setShowUserConfirmation(false);
-
       const stageIntroductionMessage = stageIntroductionMessages[nextStep];
 
       try {
-        fetch("/chat_stage_introduction", {
+        const res = await fetch("/chat_stage_introduction", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             interview_id: id,
+            stage: nextStep,
             stage_introduction_message: stageIntroductionMessage,
           }),
-        }).then((res) => {
-          if (res.ok) {
-            console.log("added stage introduction message to messages");
+        });
+
+        if (res.ok) {
+          setCurrentStep(nextStep);
+          setDidUserConfirm(true);
+          setShowUserConfirmation(false);
+
+          // Add 1 second delay before updating messages
+          setTimeout(() => {
             setMessages((prevMessages) => [
               ...prevMessages,
               {
@@ -189,10 +199,15 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
                 sender: "AI",
               },
             ]);
-          } else {
-            console.error("Failed to revert stage");
+          }, 1500);
+
+          if (nextStep === "assessment") {
+            handleSendMessage("");
           }
-        });
+          
+        } else {
+          console.error("Failed to revert stage");
+        }
       } catch (error) {
         console.error("Error reverting stage:", error);
       }
@@ -223,7 +238,7 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const text = e.clipboardData.getData('text/plain');
+    const text = e.clipboardData.getData("text/plain");
     setInputValue(text);
   };
 

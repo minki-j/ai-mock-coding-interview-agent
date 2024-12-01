@@ -25,8 +25,10 @@ const Interview = () => {
     setCurrentStep,
     didUserConfirm,
     setDidUserConfirm,
-    setNextStep,
+    // showUserConfirmation,
     setShowUserConfirmation,
+    // nextStep,
+    setNextStep,
   } = useContext(StageContext);
   const default_imports =
     "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
@@ -58,7 +60,9 @@ const Interview = () => {
   };
 
   useEffect(() => {
-    console.log("fetching interview with id", id);
+    setDidUserConfirm(true);
+    setShowUserConfirmation(false);
+
     const fetchInterview = async () => {
       try {
         const res = await fetch(`/get_interview/${id}`);
@@ -102,63 +106,90 @@ const Interview = () => {
   }, [id]);
 
   const handleSendMessage = async (message) => {
-    const userMessage = {
-      message: message,
-      sentTime: new Date().toISOString(),
-      sender: "User",
-    };
-
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    if (message) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          message: message,
+          sentTime: new Date().toISOString(),
+          sender: "User",
+        },
+      ]);
+    }
 
     try {
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: message,
-          interview_id: id,
-          code_editor_state: code,
-          test_result: testResult,
-          wait_for_user_confirmation: !didUserConfirm,
-        }),
-      });
+      let allDecisionsCompleted = false;
+      let isFirstFetchDone = false;
+      let finalResponse = "";
 
-      const data = await response.json();
+      // To receive Agent's inner process messages(display_decision), we need to call the chat endpoint multiple times until the graph is reached the end.
+      while (!allDecisionsCompleted) {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: message,
+            interview_id: id,
+            code_editor_state: code,
+            test_result: testResult,
+            wait_for_user_confirmation: !didUserConfirm,
+            is_first_fetch_done: isFirstFetchDone,
+          }),
+        });
+        isFirstFetchDone = true;
 
-      if (data === null) {
-        console.log("Waiting for user confirmation");
-        setTimeout(() => {
-          setShowUserConfirmation(true);
-        }, 1500);
-        return;
+        const data = await response.json();
+
+        if (!data) {
+          // If the response is empty, we need show the user confirmation button, and quit this handleSendMessage function.
+          setTimeout(() => {
+            setShowUserConfirmation(true);
+          }, 1500);
+          return;
+        }
+
+        if (!data.display_decision) {
+          // If display_decision is empty, it means that the graph is reached the end. Break the while loop by setting allDecisionsCompleted to true and pass the data to finalResponse
+          allDecisionsCompleted = true;
+          finalResponse = data;
+        } else {
+          // If display_decision is not empty, it means that the graph is interrupted. We need to display the message.
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            {
+              message: data.display_decision,
+              sentTime: new Date().toISOString(),
+              sender: "display_decision",
+            },
+          ]);
+        }
       }
 
-      const message_from_interviewer = data.message_from_interviewer;
-      const interviewerMessage = {
-        message: message_from_interviewer,
-        sentTime: new Date().toISOString(),
-        sender: "AI",
-      };
-
-      let new_step = data.stage;
+      // Handle the stage change
+      let new_step = finalResponse.stage;
       if (new_step === "main") {
-        new_step = data.main_stage_step;
+        new_step = finalResponse.main_stage_step;
       }
-
-      if (new_step !== currentStep && currentStep !== "greeting") {
-        console.log("Setting didUserConfirm to false");
+      if (new_step !== currentStep && currentStep !== "greeting" && new_step !== "assessment") {
         setDidUserConfirm(false);
         setNextStep(new_step);
       }
-
-      if (currentStep == "greeting"){
+      if (currentStep == "greeting") {
         setCurrentStep(new_step);
       }
 
+      // Display the message from the interviewer
       setTimeout(() => {
-        setMessages((prevMessages) => [...prevMessages, interviewerMessage]);
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          {
+            message: finalResponse.message_from_interviewer,
+            sentTime: new Date().toISOString(),
+            sender: "AI",
+          },
+        ]);
         const audio = new Audio(messageSound);
         audio.play();
       }, 100);
@@ -238,6 +269,7 @@ const Interview = () => {
               messages={messages}
               setMessages={setMessages}
               onSendMessage={handleSendMessage}
+              handleSendMessage={handleSendMessage}
             />
           </div>
         </div>
@@ -290,8 +322,6 @@ const Interview = () => {
   );
 };
 
-Interview.propTypes = {
-
-};
+Interview.propTypes = {};
 
 export default Interview;

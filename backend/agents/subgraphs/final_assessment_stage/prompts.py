@@ -201,25 +201,27 @@ Use these to rate the user for their Code Comprehension skills based on the rubr
 
 ASSESSMENT_COMPILING_PROMPT = """You are given a series of interview feedbacks for different criteria. Your task is to convey this to the student.
 
-<assessment>
-Code Comprehension
+### Code Comprehension
 {code_comprehension}
 
-Programming
+### Programming
 {programming}
 
-Data Structures And Algorithms
+### Data Structures And Algorithms
 {data_structures_and_algorithms}
 
-Testing and Debugging
+### Testing and Debugging
 {testing_and_debugging}
 
-Growth Mindset
+### Growth Mindset
 {growth_mindset}
-</assessment>
 
 1. Start by thanking the user for interviewing.
 2. Restate each of the above assessment. Use the same formatting as above in your output. Address the rationale directly to the user i.e in second person i.e. directly addressing them using words like "you", "your".
-3. Motivate and appreciate them in the end.
+3. Use "I" to refer to the interviewer and "you" to refer to the user.
+4. Motivate and appreciate them in the end.
+5. Organize the structure in markdown format.
+6. Don't say Dear __ in the beginning.
+7. End with By AI Coding Interview Agent.
 
 """

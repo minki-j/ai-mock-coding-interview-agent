@@ -4,7 +4,7 @@ from enum import Enum
 from varname import nameof as n
 
 from langgraph.graph import START, END, StateGraph
-
+from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -23,25 +23,6 @@ def is_user_approach_known(state: OverallState):
         return n(general_reply)
     else:
         return n(approach_based_reply)
-
-
-def approach_based_reply(state: OverallState):
-    print("\n>>> NODE: approach_based_reply")
-    response = (
-        ChatPromptTemplate.from_template(prompts.GIVE_APPROACH_SPEIFIC_HINT) | chat_model
-    ).invoke(
-        {
-            "question": state.interview_question_md,
-            "approach": f"{state.user_approach}",
-            "conversation": state.stringify_messages(),
-        }
-    )
-
-    return {
-        "message_from_interviewer": response.content.strip("ai: "),
-        "messages": [AIMessage(content=response.content.strip("ai: "))],
-    }
-
 
 def detect_user_approach(state: OverallState):
     print("\n>>> NODE: detect_user_approach")
@@ -93,9 +74,35 @@ def detect_user_approach(state: OverallState):
     )
 
     if user_approach_dict is None:
-        return {"user_approach": "unknown"}
+        return {
+            "display_decision": "Couldn't identify your approach yet.",
+            "user_approach": "unknown",
+        }
 
-    return {"user_approach": json.dumps(user_approach_dict)}
+    return {
+        "display_decision": f"Recognized your proposed approach as the  \"{user_approach_dict['title']}\".",
+        "user_approach": json.dumps(user_approach_dict),
+    }
+
+
+def approach_based_reply(state: OverallState):
+    print("\n>>> NODE: approach_based_reply")
+    response = (
+        ChatPromptTemplate.from_template(prompts.GIVE_APPROACH_SPEIFIC_HINT)
+        | chat_model
+    ).invoke(
+        {
+            "question": state.interview_question_md,
+            "approach": f"{state.user_approach}",
+            "conversation": state.stringify_messages(),
+        }
+    )
+
+    return {
+        "display_decision": "Generated a reply considering your approach.",
+        "message_from_interviewer": response.content.strip("ai: "),
+        "messages": [AIMessage(content=response.content.strip("ai: "))],
+    }
 
 
 def general_reply(state: OverallState):
@@ -110,6 +117,7 @@ def general_reply(state: OverallState):
     reply = chain.invoke({})
 
     return {
+        "display_decision": "Completed writing a reply.",
         "message_from_interviewer": reply,
         "messages": [AIMessage(content=reply)],
     }
@@ -136,9 +144,15 @@ def is_thought_process_done(state: OverallState):
     )
 
     if chain.invoke({"messages": stringified_messages}).should_end_thought_process:
-        return {"stage": "main"}
+        return {
+            "display_decision": "Concluded that you have provided sufficient thought process.",
+            "stage": "main",
+        }
     else:
-        return {"stage": "thought_process"}
+        return {
+            "display_decision": "Concluded that you might need more time for thought process.",
+            "stage": "thought_process",
+        }
 
 
 g = StateGraph(OverallState)
@@ -163,4 +177,13 @@ g.add_edge(n(general_reply), n(is_thought_process_done))
 g.add_node(is_thought_process_done)
 g.add_edge(n(is_thought_process_done), END)
 
-thought_process_stage_graph = g.compile()
+
+thought_process_stage_graph = g.compile(
+    checkpointer=MemorySaver(),
+    interrupt_after=[
+        n(detect_user_approach),
+        n(approach_based_reply),
+        n(general_reply),
+        n(is_thought_process_done),
+    ],
+)

@@ -8,7 +8,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.messages import AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 from agents.state_schema import OverallState
-
+from langgraph.checkpoint.memory import MemorySaver
 from agents.llm_models import chat_model
 
 from agents.subgraphs.final_assessment_stage import prompts
@@ -107,6 +107,7 @@ def compile_assessment(state: OverallAssessmentPrivateState) -> OverallState:
     )
     
     return {
+            "display_decision": "Generated the final report using the 5 assessments.",
             "message_from_interviewer": assessment_response.content,
             "messages": [AIMessage(content=assessment_response.content)],
         }
@@ -128,12 +129,20 @@ g.add_edge("start", n(assess_data_structures_and_algorithms))
 g.add_edge("start", n(assess_debugging_and_testing))
 g.add_edge("start", n(assess_growth_mindset))
 
-g.add_edge(n(assess_code_comprehension), n(compile_assessment))
-g.add_edge(n(assess_programming), n(compile_assessment))
-g.add_edge(n(assess_data_structures_and_algorithms), n(compile_assessment))
-g.add_edge(n(assess_debugging_and_testing), n(compile_assessment))
-g.add_edge(n(assess_growth_mindset), n(compile_assessment))
+g.add_edge(n(assess_code_comprehension), "rendezvous")
+g.add_edge(n(assess_programming), "rendezvous")
+g.add_edge(n(assess_data_structures_and_algorithms), "rendezvous")
+g.add_edge(n(assess_debugging_and_testing), "rendezvous")
+g.add_edge(n(assess_growth_mindset), "rendezvous")
+
+g.add_node("rendezvous", lambda state: {
+    "display_decision": "Assessed your interview with 5 different aspects in parallel.",
+})
+g.add_edge("rendezvous", n(compile_assessment))
 
 g.add_edge(n(compile_assessment), END)
 
-final_assessment_stage_graph = g.compile()
+final_assessment_stage_graph = g.compile(
+    checkpointer=MemorySaver(),
+    interrupt_after=["rendezvous", n(compile_assessment)],
+)
