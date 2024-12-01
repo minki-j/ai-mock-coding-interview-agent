@@ -25,8 +25,10 @@ const Interview = () => {
     setCurrentStep,
     didUserConfirm,
     setDidUserConfirm,
-    setNextStep,
+    // showUserConfirmation,
     setShowUserConfirmation,
+    // nextStep,
+    setNextStep,
   } = useContext(StageContext);
   const default_imports =
     "from typing import List, Tuple, Dict, Set, Optional, Any, Union, Callable\n\n";
@@ -58,7 +60,9 @@ const Interview = () => {
   };
 
   useEffect(() => {
-    console.log("fetching interview with id", id);
+    setDidUserConfirm(true);
+    setShowUserConfirmation(false);
+
     const fetchInterview = async () => {
       try {
         const res = await fetch(`/get_interview/${id}`);
@@ -111,49 +115,57 @@ const Interview = () => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
     try {
-      let count = 1;
-      let allDecisionsMade = false;
-      let finalResponse = null;
-      while (!allDecisionsMade && count <= 2) {
-        console.log("count:", count);
-        count += 1;
+      let allDecisionsCompleted = false;
+      let isFirstFetchDone = false;
+      let finalResponse = "";
+      let previousDisplayDecision = "";
+
+      while (!allDecisionsCompleted && previousDisplayDecision !== "stop") {
         const response = await fetch("/chat", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            message: message,
+            message: isFirstFetchDone ? null : message,
             interview_id: id,
             code_editor_state: code,
             test_result: testResult,
             wait_for_user_confirmation: !didUserConfirm,
           }),
         });
+        isFirstFetchDone = true;
 
         const data = await response.json();
+        
+        if (!data) {
+          // If the response is empty, we need to wait for user confirmation before proceeding
+          console.log("Waiting for user confirmation");
+          setTimeout(() => {
+            setShowUserConfirmation(true);
+          }, 1500);
+          return;
+        }
 
         if (!data.display_decision) {
-          allDecisionsMade = true;
+          allDecisionsCompleted = true;
           finalResponse = data;
+          previousDisplayDecision = "";
         } else {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            {
-              message: data.display_decision,
-              sentTime: new Date().toISOString(),
-              sender: "AI",
-            },
-          ]);
+          if (data.display_decision !== previousDisplayDecision) {
+            setMessages((prevMessages) => [
+              ...prevMessages,
+              {
+                message: data.display_decision,
+                sentTime: new Date().toISOString(),
+                sender: "display_decision",
+              },
+            ]);
+            previousDisplayDecision = data.display_decision;
+          } else {
+            previousDisplayDecision = "stop";
+          }
         }
-      }
-
-      if (finalResponse === null) {
-        console.log("Waiting for user confirmation");
-        setTimeout(() => {
-          setShowUserConfirmation(true);
-        }, 1500);
-        return;
       }
 
       const message_from_interviewer = finalResponse.message_from_interviewer;

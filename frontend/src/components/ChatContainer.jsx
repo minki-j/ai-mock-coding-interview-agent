@@ -162,14 +162,10 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
 
   const handleResponse = async (accepted) => {
     if (accepted) {
-      setCurrentStep(nextStep);
-      setDidUserConfirm(true);
-      setShowUserConfirmation(false);
-
       const stageIntroductionMessage = stageIntroductionMessages[nextStep];
 
       try {
-        fetch("/chat_stage_introduction", {
+        const res = await fetch("/chat_stage_introduction", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -178,9 +174,16 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
             interview_id: id,
             stage_introduction_message: stageIntroductionMessage,
           }),
-        }).then((res) => {
-          if (res.ok) {
-            console.log("added stage introduction message to messages");
+        });
+
+        if (res.ok) {
+          console.log("added stage introduction message to messages");
+          setCurrentStep(nextStep);
+          setDidUserConfirm(true);
+          setShowUserConfirmation(false);
+          
+          // Add 1 second delay before updating messages
+          setTimeout(() => {
             setMessages((prevMessages) => [
               ...prevMessages,
               {
@@ -189,10 +192,10 @@ const ChatContainer = ({ messages, setMessages, onSendMessage }) => {
                 sender: "AI",
               },
             ]);
-          } else {
-            console.error("Failed to revert stage");
-          }
-        });
+          }, 1500);
+        } else {
+          console.error("Failed to revert stage");
+        }
       } catch (error) {
         console.error("Error reverting stage:", error);
       }

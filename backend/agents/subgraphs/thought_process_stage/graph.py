@@ -24,26 +24,6 @@ def is_user_approach_known(state: OverallState):
     else:
         return n(approach_based_reply)
 
-
-def approach_based_reply(state: OverallState):
-    print("\n>>> NODE: approach_based_reply")
-    response = (
-        ChatPromptTemplate.from_template(prompts.GIVE_APPROACH_SPEIFIC_HINT)
-        | chat_model
-    ).invoke(
-        {
-            "question": state.interview_question_md,
-            "approach": f"{state.user_approach}",
-            "conversation": state.stringify_messages(),
-        }
-    )
-
-    return {
-        "message_from_interviewer": response.content.strip("ai: "),
-        "messages": [AIMessage(content=response.content.strip("ai: "))],
-    }
-
-
 def detect_user_approach(state: OverallState):
     print("\n>>> NODE: detect_user_approach")
 
@@ -94,16 +74,34 @@ def detect_user_approach(state: OverallState):
     )
 
     if user_approach_dict is None:
-        print("==>> display_decision: unknown")
         return {
+            "display_decision": "Couldn't identify your approach yet.",
             "user_approach": "unknown",
-            "display_decision": "unknown",
         }
 
-    print(f"==>> display_decision: {user_approach_dict['title']}")
     return {
+        "display_decision": f"Recognized your proposed approach as the  \"{user_approach_dict['title']}\".",
         "user_approach": json.dumps(user_approach_dict),
-        "display_decision": user_approach_dict["title"],
+    }
+
+
+def approach_based_reply(state: OverallState):
+    print("\n>>> NODE: approach_based_reply")
+    response = (
+        ChatPromptTemplate.from_template(prompts.GIVE_APPROACH_SPEIFIC_HINT)
+        | chat_model
+    ).invoke(
+        {
+            "question": state.interview_question_md,
+            "approach": f"{state.user_approach}",
+            "conversation": state.stringify_messages(),
+        }
+    )
+
+    return {
+        "display_decision": "Generated a reply considering your approach.",
+        "message_from_interviewer": response.content.strip("ai: "),
+        "messages": [AIMessage(content=response.content.strip("ai: "))],
     }
 
 
@@ -119,6 +117,7 @@ def general_reply(state: OverallState):
     reply = chain.invoke({})
 
     return {
+        "display_decision": "Completed writing a reply.",
         "message_from_interviewer": reply,
         "messages": [AIMessage(content=reply)],
     }
@@ -145,19 +144,22 @@ def is_thought_process_done(state: OverallState):
     )
 
     if chain.invoke({"messages": stringified_messages}).should_end_thought_process:
-        return {"stage": "main"}
+        return {
+            "display_decision": "Concluded that you have provided sufficient thought process.",
+            "stage": "main",
+        }
     else:
-        return {"stage": "thought_process"}
+        return {
+            "display_decision": "Concluded that you might need more time for thought process.",
+            "stage": "thought_process",
+        }
 
 
 g = StateGraph(OverallState)
 g.add_edge(START, n(detect_user_approach))
 
 g.add_node(detect_user_approach)
-g.add_edge(n(detect_user_approach), "display_decision_node")
-
-g.add_node("display_decision_node", lambda _: {"display_decision": ""})
-g.add_edge("display_decision_node", n(is_user_approach_known))
+g.add_edge(n(detect_user_approach), n(is_user_approach_known))
 
 g.add_node(n(is_user_approach_known), RunnablePassthrough())
 g.add_conditional_edges(
@@ -177,5 +179,11 @@ g.add_edge(n(is_thought_process_done), END)
 
 
 thought_process_stage_graph = g.compile(
-    checkpointer=MemorySaver(), interrupt_before=["display_decision_node"]
+    checkpointer=MemorySaver(),
+    interrupt_after=[
+        n(detect_user_approach),
+        n(approach_based_reply),
+        n(general_reply),
+        n(is_thought_process_done),
+    ],
 )

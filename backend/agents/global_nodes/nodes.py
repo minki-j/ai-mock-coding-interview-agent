@@ -35,6 +35,7 @@ def check_if_solution_is_leaked(state: OverallState):
 
     if validation_result.is_solution_revealed:
         return {
+            "display_decision": "Detected that the solution is revealed in the reply. Amended the reply.",
             "message_from_interviewer": validation_result.amended_reply,
             "messages": [
                 RemoveMessage(id=state.messages[-1].id),
@@ -43,5 +44,6 @@ def check_if_solution_is_leaked(state: OverallState):
         }
     else:
         return {
+            "display_decision": "Confirmed that the solution is not revealed in the reply.",
             "message_from_interviewer": state.message_from_interviewer,
         }

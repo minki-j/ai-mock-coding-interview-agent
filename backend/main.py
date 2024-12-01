@@ -183,7 +183,7 @@ async def init_interview(interview_info: dict):
             "code_snippet": interview_info["codeSnippets"],
         },
         config={
-            "configurable": {"thread_id": interview_id, "get_code_feedback": True},
+            "configurable": {"thread_id": interview_id},
             "recursion_limit": 100,
         },
     )
@@ -191,41 +191,67 @@ async def init_interview(interview_info: dict):
     return {"interview_id": str(interview_id)}
 
 
+def get_deepest_state(state):
+    print("==>> get_deepest_state: ", state.tasks)
+    # Base case: if no tasks attribute or empty tasks
+    if not hasattr(state, "tasks") or not state.tasks or not state.tasks[0].state:
+        print("stop recursion")
+        return state
+
+    # Recursive case: go deeper into tasks[0].state
+    next_state = state.tasks[0].state
+    print("one level deeper")
+    return get_deepest_state(next_state)
+
+
 @app.post("/chat")
 async def chat(data: dict):
     config = {
-        "configurable": {"thread_id": data["interview_id"], "get_code_feedback": True},
+        "configurable": {"thread_id": data["interview_id"]},
         "recursion_limit": 100,
     }
-    main_graph.update_state(
-        config,
-        {
-            "messages": [HumanMessage(content=data["message"])], #TODO: This gets duplicated
+
+    state = main_graph.get_state(config, subgraphs=True)
+
+    deepest_state = get_deepest_state(state)
+    display_decision = deepest_state.values.get("display_decision")
+
+    if display_decision:
+        print("==>> display_decision: ", display_decision)
+        # If there is an interrupted node, we don't need to update the state.
+        pass
+    else:
+        print("==>> display_decision is empty")
+        # If there is no interrupted subgraph, update the state
+        update_input = {
+            "messages": [HumanMessage(content=data["message"])] if data["message"] else [],
             "code_editor_state": data["code_editor_state"],
             "test_result": data["test_result"],
-        },
-    )
+        }
+
+        main_graph.update_state(config, update_input)
 
     if data["wait_for_user_confirmation"]:
+        # If we need to wait for user confirmation, we don't need to invoke the graph
         return None
 
     output = main_graph.invoke(None, config)
 
     state = main_graph.get_state(config, subgraphs=True)
 
-    if state.tasks and state.tasks[0].state and state.tasks[0].state.values:
-        display_decision = state.tasks[0].state.values.get("display_decision")
-        print(f"==>> display_decision: {display_decision}")
-        if display_decision:
-            return {
-                "display_decision": display_decision,
+    if display_decision:
+        # If the graph is interrupted, display the agent's decision, return it
+        main_graph.update_state(deepest_state.config, {"display_decision": ""})
+        return {
+            "display_decision": display_decision,
         }
-
-    return {
-        "message_from_interviewer": output["message_from_interviewer"],
-        "stage": output["stage"],
-        "main_stage_step": output["main_stage_step"],
-    }
+    else:
+        # If the graph is not interrupted in subgraph level, return message and updated stage
+        return {
+            "message_from_interviewer": output["message_from_interviewer"],
+            "stage": output["stage"],
+            "main_stage_step": output["main_stage_step"],
+        }
 
 
 @app.post("/update_code_editor_state")
@@ -479,11 +505,11 @@ async def revert_stage(data: dict):
     def revert_stage_or_step(current_stage, current_main_stage_step):
         reverted_stage = ""
         reverted_main_stage_step = ""
-        
+
         if current_stage == "main":
             if current_main_stage_step == "coding":
                 reverted_stage = "thought_process"
-                reverted_main_stage_step = ""
+                reverted_main_stage_step = "coding"
             else:
                 revert_step_map = {
                     "debugging": "coding",
@@ -500,7 +526,9 @@ async def revert_stage(data: dict):
     reverted_stage, reverted_main_stage_step = revert_stage_or_step(
         current_state["stage"], current_state["main_stage_step"]
     )
-    print(f"==>> reverted_stage: {reverted_stage}, reverted_main_stage_step: {reverted_main_stage_step}")
+    print(
+        f"==>> reverted_stage: {reverted_stage}, reverted_main_stage_step: {reverted_main_stage_step}"
+    )
     main_graph.update_state(
         {"configurable": {"thread_id": data["interview_id"]}},
         {

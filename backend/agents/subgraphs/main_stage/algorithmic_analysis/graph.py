@@ -8,6 +8,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
+from langgraph.checkpoint.memory import MemorySaver
 
 from agents.llm_models import chat_model
 
@@ -56,6 +57,7 @@ Reply to the candidate's last message.
     )
 
     return {
+        "display_decision": "Generated feedback for your algorithmic analysis.",
         "message_from_interviewer": reply.content,
         "messages": [reply],
     }
@@ -67,4 +69,9 @@ g.add_edge(START, n(generate_feedback))
 g.add_node(generate_feedback)
 g.add_edge(n(generate_feedback), END)
 
-algorithmic_analysis_step_graph = g.compile()
+algorithmic_analysis_step_graph = g.compile(
+    checkpointer=MemorySaver(),
+    interrupt_after=[
+        n(generate_feedback),
+    ],
+)
