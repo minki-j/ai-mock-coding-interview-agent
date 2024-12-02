@@ -1,9 +1,11 @@
 fastapi==0.104.1
 uvicorn>=0.26.0
 python-multipart==0.0.6
-langchain_core==0.3.6
+langchain_core>=0.3.15
 langchain_openai==0.2.1
 langchain_anthropic==0.2.1
+langchain_groq==0.2.1
+langchain_cerebras==0.3.0
 langgraph==0.2.28
 langgraph.checkpoint.sqlite==1.0.4
 pydantic==2.9.2
