@@ -147,6 +147,8 @@ const Interview = () => {
           setTimeout(() => {
             setShowUserConfirmation(true);
           }, 1500);
+          const audio = new Audio(messageSound);
+          audio.play();
           return;
         }
 

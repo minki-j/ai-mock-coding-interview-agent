@@ -20,7 +20,7 @@ class CodeFeedbackAgentPrivateState(BaseModel):
     interview_question_md: str = Field(default="")
     user_approach: str = Field(default="")
     code_editor_state: str = Field(default="")
-
+    test_result: str = Field(default="")
     assessment_result: str = Field(default="")
 
 
@@ -36,6 +36,7 @@ def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState
         "interview_question_md": state.interview_question_md,
         "user_approach": user_approach,
         "code_editor_state": state.code_editor_state,
+        "test_result": state.test_result,
     }
 
 
@@ -49,6 +50,7 @@ def assess_code_with_correct_solution(state: CodeFeedbackAgentPrivateState):
             "interview_question": state.interview_question_md,
             "correct_solution": state.user_approach,
             "user_solution": state.code_editor_state,
+            "test_result": state.test_result,
         }
     )
 
@@ -68,6 +70,8 @@ def generate_feedback(state: CodeFeedbackAgentPrivateState) -> OverallState:
             "interview_question": state.interview_question_md,
             "user_solution": state.code_editor_state,
             "assessment": state.assessment_result,
+            "test_result": state.test_result,
+            "conversation": state.conversation,
         }
     )
 

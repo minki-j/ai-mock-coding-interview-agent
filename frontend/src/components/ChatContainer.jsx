@@ -8,6 +8,8 @@ import {
   MessageList,
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
+import messageSound from "../assets/sounds/message-pop-alert.mp3";
+
 
 import ChatMessage from "./ChatMessage";
 
@@ -15,7 +17,7 @@ import { StageContext } from "../context/StageContext";
 
 const stageIntroductionMessages = {
   coding:
-    "Welcome to the coding stage! Let's get started. Start coding your solution using the code editor on the right.",
+    "Welcome to the coding stage! Let's get started. Start coding your solution using the code editor on the right.\n\nOnce you're done, please ask me to look at your solution. Also, if you have any questions related to library or APIs, feel free to ask me.",
   debugging:
     "Welcome to the debugging stage! Let's get started. Read your solution carefully and identify if there are any edge cases that you might have missed.",
   algorithmic_analysis:
@@ -199,6 +201,8 @@ const ChatContainer = ({
                 sender: "AI",
               },
             ]);
+            const audio = new Audio(messageSound);
+            audio.play();
           }, 1500);
 
           if (nextStep === "assessment") {
@@ -274,7 +278,10 @@ const ChatContainer = ({
         </MessageList>
         <MessageInput
           value={inputValue}
-          onChange={(val) => setInputValue(val)}
+          onChange={(val) => {
+            setInputValue(val);
+            fullTranscriptRef.current = val;
+          }}
           placeholder="Type message here"
           onPaste={handlePaste}
           onSend={(val) => {
@@ -291,6 +298,7 @@ const ChatContainer = ({
               }
             }
             setInputValue("");
+            fullTranscriptRef.current = "";
           }}
           sendButton={true}
           sendDisabled={false}
