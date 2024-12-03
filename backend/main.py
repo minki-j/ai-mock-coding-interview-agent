@@ -2,6 +2,7 @@ import os
 import uuid
 import tempfile
 import subprocess
+import re
 from typing import Dict, List, Optional
 from pathlib import Path
 from bson import ObjectId
@@ -119,9 +120,23 @@ async def execute_code(code_execution: CodeExecution):
 
         try:
             stdout, stderr = process.communicate(timeout=code_execution.timeout)
+            print(f"==>> stdout: {stdout}")
+            print(f"==>> stderr: {stderr}")
+
+            if "OK" in stderr:
+                cleaned_stderr = "Congratulations! All tests passed 🚀"
+            else:
+                cleaned_stderr = "Some tests failed. Please check the following:\n\n" + re.sub(
+                    r"-{3,}",
+                    "\n",
+                    stderr.split("solution.")[1].replace("AssertionError: ", "\n\n"),
+                )
+                print(f"==>> cleaned_stderr: {cleaned_stderr}")
+
+            print(f"==>> cleaned_stderr: {cleaned_stderr}")
             return ExecutionResult(
-                output=stdout,
-                error=stderr if stderr else None,
+                output="",
+                error=cleaned_stderr,
                 execution_time=code_execution.timeout,
             )
         except subprocess.TimeoutExpired:
@@ -536,7 +551,6 @@ async def chat_stage_introduction(data: dict):
         config,
         {"messages": [AIMessage(content=data["stage_introduction_message"])]},
     )
-
 
 
 @app.get("/health")

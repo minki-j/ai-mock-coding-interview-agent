@@ -8,7 +8,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from agents.state_schema import OverallState
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, AnyMessage
 from langgraph.checkpoint.memory import MemorySaver
 
 from agents.llm_models import chat_model
@@ -22,6 +22,7 @@ class CodeFeedbackAgentPrivateState(BaseModel):
     code_editor_state: str = Field(default="")
     test_result: str = Field(default="")
     assessment_result: str = Field(default="")
+    conversation: str = Field(default="")
 
 
 def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState:
@@ -37,6 +38,7 @@ def initiate_private_state(state: OverallState) -> CodeFeedbackAgentPrivateState
         "user_approach": user_approach,
         "code_editor_state": state.code_editor_state,
         "test_result": state.test_result,
+        "conversation": state.stringify_messages(),
     }
 
 

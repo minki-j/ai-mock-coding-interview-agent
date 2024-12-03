@@ -26,12 +26,11 @@ Organize your output in the following manner:
 2. "correct": The correct parts of the user solution
 3. "incorrect": The incorrect parts of the user solution
 
-And use Markdown formatting.
+Use Markdown formatting.
 """
 
 FEEDBACK_PROMPT = """
 You are interviewing a candidate for a software engineering role. 
-
 Your task is to write a reply to the candidate's last message with the assessment that an expert has given to the candidate's solution.
 
 ---
@@ -56,5 +55,7 @@ conversation: {conversation}
 
 ---
 
-Generated a reply grounded in this infromation using the information above. Remember to not reveal the solution directly. Use Markdown formatting.
+Generated a reply grounded in this infromation using the information above. Remember to not reveal the solution directly. 
+This is not a professional letter or report. Don't add "Hi [Candidate's Name]" or  "Best, [Your Name]" or anything like that. Just write a reply to the candidate.
+Use Markdown formatting.
 """

@@ -6,6 +6,8 @@ import ChatContainer from "../components/ChatContainer";
 import PythonEditor from "../components/PythonEditor";
 import messageSound from "../assets/sounds/message-pop-alert.mp3";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
+import ReactMarkdown from "react-markdown";
+
 
 const Interview = () => {
   const { id } = useParams();
@@ -228,7 +230,7 @@ const Interview = () => {
         });
       };
       handleUpdateCodeEditorState();
-    }, 5000);
+    }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [code, testResult]);
@@ -318,7 +320,9 @@ const Interview = () => {
               <h2 className="font-semibold">Test Results</h2>
             </div>
             {isResultsVisible && (
-              <div className="mt-2 p-5 h-full">{testResult}</div>
+              <pre className="mt-2 p-5 h-full whitespace-pre-wrap">
+                {testResult}
+              </pre>
             )}
           </div>
         </div>

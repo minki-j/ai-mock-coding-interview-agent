@@ -111,6 +111,9 @@ def should_move_to_next_step(state: OverallState):
     print("\n>>> NODE: should_move_to_next_step")
 
     class NextStepResponse(BaseModel):
+        rationale: str = Field(
+            description="The rationale for the decision to move to the next step or stay in the current step."
+        )
         should_move_to_next_step: bool = Field(
             description="Whether to move to the next step or stay in the current step."
         )
@@ -128,6 +131,7 @@ def should_move_to_next_step(state: OverallState):
             ),
             "code_editor_state": state.code_editor_state,
             "current_step": state.main_stage_step,
+            "test_result": "failed" if "failure" in state.test_result else "passed",
         }
     )
     if response.should_move_to_next_step:
