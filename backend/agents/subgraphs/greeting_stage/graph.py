@@ -90,7 +90,7 @@ You need to decide whether to use the predefined reply or create a free-style re
    - Create an appropriate free-style response in free_reply that maintains the interview flow
    - Leave amended_predefined_reply empty
 
-Provide clear rationale for your decision in the rationale field.
+Please use markdown to format your responses.
 """
             )
             | chat_model.with_structured_output(ContextualizedGreetingMessage)

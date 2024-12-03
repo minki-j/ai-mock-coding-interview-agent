@@ -80,7 +80,7 @@ def detect_user_approach(state: OverallState):
         }
 
     return {
-        "display_decision": f"Recognized your proposed approach as the  \"{user_approach_dict['title']}\".",
+        "display_decision": f"Recognized your proposed approach as \"{user_approach_dict['title']}\".",
         "user_approach": json.dumps(user_approach_dict),
     }
 
@@ -187,3 +187,6 @@ thought_process_stage_graph = g.compile(
         n(is_thought_process_done),
     ],
 )
+
+with open("./agents/graph_diagrams/thought_process_stage_graph.png", "wb") as f:
+    f.write(thought_process_stage_graph.get_graph(xray=1).draw_mermaid_png())

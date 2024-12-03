@@ -152,3 +152,6 @@ main_graph = g.compile(
 
 with open("./agents/graph_diagrams/main_graph.png", "wb") as f:
     f.write(main_graph.get_graph(xray=1).draw_mermaid_png())
+
+with open("./agents/graph_diagrams/main_graph_high_level.png", "wb") as f:
+    f.write(main_graph.get_graph(xray=0).draw_mermaid_png())

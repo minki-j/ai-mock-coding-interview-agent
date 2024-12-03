@@ -205,3 +205,6 @@ main_stage_graph = g.compile(
         n(should_move_to_next_step),
     ],
 )
+
+with open("./agents/graph_diagrams/main_stage_graph.png", "wb") as f:
+    f.write(main_stage_graph.get_graph(xray=1).draw_mermaid_png())

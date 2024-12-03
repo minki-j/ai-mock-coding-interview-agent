@@ -85,7 +85,7 @@ elif "cerebras" in DEFAULT_MODEL:
     ).with_fallbacks(
         [
             ChatOpenAI(
-                model=FALLBACK_MODEL,
+                model="gpt-4o",
                 api_key=OPENAI_API_KEY,
                 temperature=LLM_TEMPERATURE,
             )
@@ -103,7 +103,7 @@ elif "groq" in DEFAULT_MODEL:
     ).with_fallbacks(
         [
             ChatOpenAI(
-                model=FALLBACK_MODEL,
+                model="gpt-4o",
                 api_key=OPENAI_API_KEY,
                 temperature=LLM_TEMPERATURE,
             )
