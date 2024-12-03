@@ -6,7 +6,6 @@ import ChatContainer from "../components/ChatContainer";
 import PythonEditor from "../components/PythonEditor";
 import messageSound from "../assets/sounds/message-pop-alert.mp3";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import ReactMarkdown from "react-markdown";
 
 
 const Interview = () => {

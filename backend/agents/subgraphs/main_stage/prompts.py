@@ -53,5 +53,5 @@ test_result: {test_result}
 
 ---
 
-You are currently in {current_step} step. Decide whether to move to the next step or stay in the current step. If you are in coding step, and the test_result is failed, then you might not move to the next step.
+You are currently in {current_step} step. Decide whether to move to the next step or stay in the current step. If you are in coding step, and the test_result is failed, then you might not move to the next step. Also if the code editor state is not complete in coding step, you should not move to the next step.
 """
