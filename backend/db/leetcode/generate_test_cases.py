@@ -1,11 +1,10 @@
 import json
 import subprocess
 import tempfile
-import re
 import os
 import uuid
 from dotenv import load_dotenv
-from typing import Optional
+from typing import Optional, List
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from tqdm import tqdm
@@ -23,6 +22,15 @@ class ExecutionResult(BaseModel):
     output: str
     error: Optional[str] = None
     execution_time: float
+
+class TestExample(BaseModel):
+    name: str
+    input: str
+    output: str
+    description: str = Field(description="A description of why this test case is chosen and why it is important to have it in the test suite.")
+
+class TestExamples(BaseModel):
+    test_examples: List[TestExample]
 
 def normalize_indentation(code: str) -> str:
     """
@@ -112,7 +120,7 @@ def execute_code(code_execution: CodeExecution):
         try:
             os.remove(file_path)
             os.rmdir(temp_dir)
-        except:
+        except Exception as _:
             pass
 
 client = OpenAI()
@@ -157,66 +165,32 @@ Think about all the possible cases given the constraints, which are not covered 
       max_tokens=2048,
       top_p=1,
       frequency_penalty=0,
-      presence_penalty=0
+      presence_penalty=0,
+      response_format=TestExamples
     )
 
-    return response.choices[0].message.content.strip("`jsonJSON \n")
+    return response.choices[0].message.parsed
 
 def convert_examples_to_test_code(test_examples, test_code):
-    test_code = test_code[:test_code.find("def test_2")].strip()
-    response = client.beta.chat.completions.parse(
-      model="gpt-4o",
-      messages=[
-          {
-          "role": "system",
-          "content": [
-            {
-              "type": "text",
-              "text": "You are an expert programmer. Your task is to generate test code for the test cases. All the code should be in python. the unit test should use a class as seen in examples, and be sure to include if __name__ == \"__main__\": so it can start the unit test if i run the python file."
-            }
-          ]
-        },
-          {
-          "role": "user",
-          "content": [
-            {
-              "type": "text",
-              "text": f"""Here is the expected output format:
+    """Receive a list of test examples, generate test code for each one"""
 
-<test_code>
-{test_code}
-</test_code>
+    # implementation_code is used as the solution
 
-Generate a code snipped similar to the above for each test case. Use the name in the data below as the name of the test.
+    output_code_list = []
 
-<test_examples>
-{test_examples}
-</test_examples>
-"""
-            }
-          ]
-        }
-        ],
-      temperature=1,
-      max_tokens=2048,
-      top_p=1,
-      frequency_penalty=0,
-      presence_penalty=0
-    )
+    for index, test_example in enumerate(test_examples):
+        input = test_example["input"]
+        output = test_example["output"]
+        name = test_example["name"]
 
-    new_examples_code = response.choices[0].message.content.strip('`python \n')
-    # new_examples_code_json = json.loads(new_examples_code.strip('`jJsSoOnN \n'), strict=False)
-    # Generate a JSON object of working codes in the above format. Output one code snippet per testcase. Use the name in the data below as the key for the JSON and the value to be the code snippet like above. The test name in the snipped should be the same as the JSON key.
-    new_examples_code_json = {}
-    # for code in re.findall(r'<test_code>(.+?)</test_code>', new_examples_code):
-    prefix_imports = "import unittest\n\n"
-    for code in new_examples_code.split("def test"):
-        if "class Solution" in code: continue
-        name = code[1:code.find("(", code.find("("))]
-        code = prefix_imports + "def test" + code
-        code = code.strip()
-        new_examples_code_json[name] = code
-    return new_examples_code_json
+        test_code_template = f"""
+import unittest\n\nclass Test(unittest.TestCase):\n    def test_{name}_{index}(self):\n        solution = Solution()\n        self.assertCountEqual(solution.twoSum({input}), {output})\n\nif __name__ == \"__main__\":\n    unittest.main()\n
+    """
+        test_code += "\n\n" + test_code_template
+
+        output_code_list.append((test_code, test_example))
+
+    return output_code_list
 
 def fix_test_cases(solution: str, test_cases: str, previous_test_cases: str = "", previous_error: str = ""):
 
@@ -259,7 +233,7 @@ def fix_test_cases(solution: str, test_cases: str, previous_test_cases: str = ""
 
     return response.choices[0].message.parsed.unit_test
 
-def main(tries: int = 3):
+def main(generate_tries: int = 2, fix_tries: int = 1):
 
     # let's start with two-sum only
     with open("interview_data/two-sum.json", "r") as f:
@@ -271,18 +245,22 @@ def main(tries: int = 3):
     constraints = content_md[content_md.rfind("Constraints:**"):].strip()
     solution = data["approaches"][0]["implementation_code"]
     existing_examples = data["test_input_output"]
-    generate_tries, fix_tries = 2, 1
     new_examples = []
-    new_test_examples_codes = []
+
     if test_cases_code and solution:
         for _ in tqdm(range(generate_tries)):
             new_examples = generate_test_examples(question=question, constraints=constraints, existing_test_examples=existing_examples)
-            new_test_examples_code_json = convert_examples_to_test_code(new_examples, test_cases_code)            
+
+            print("*** New test cases ***")
+
+            new_examples_json = json.loads(new_examples.model_dump_json())["test_examples"]
+            print(new_examples_json)
+
+            new_tests_list = convert_examples_to_test_code(new_examples_json, solution)
 
             failing_tests = []
             passing_tests = []
-            for test_case, test_code in new_test_examples_code_json.items():
-                test_code = solution + "\n\n" + test_code
+            for test_code, test_example in new_tests_list:
                 test_code_execution = CodeExecution(code=test_code)
                 formatted_code = format_code(test_code_execution)["formatted_code"]
 
@@ -290,11 +268,11 @@ def main(tries: int = 3):
                 execution_result = execute_code(test_code_execution)
 
                 if execution_result.error:
-                    failing_tests.append({"name": test_case, "code": test_code, "error": execution_result.error})
+                    failing_tests.append({"name": test_example["name"], "code": test_code, "error": execution_result.error})
                 else:
-                    passing_tests.append({"name": test_case, "code": test_code})
+                    passing_tests.append({"name": test_example["name"], "code": test_code})
 
-            
+
             for test in failing_tests:
                 tries_count = 0
                 previous_test_cases, previous_error = test["code"], test["error"]
@@ -329,7 +307,7 @@ def main(tries: int = 3):
             for test in new_examples:
                 if test in passing_tests:
                     passed_examples.append(test)
-            
+
             data["test_examples_debugging"] = passed_examples
             data["test_code_debugging"] = passing_tests
 
@@ -338,4 +316,4 @@ def main(tries: int = 3):
 
 
 if __name__ == "__main__":
-    main(tries=3)
+    main()
