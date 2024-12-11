@@ -11,6 +11,8 @@ from tqdm import tqdm
 
 load_dotenv()
 
+os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
+
 class TestCase(BaseModel):
     unit_test: str = Field(description="The unit test case associated with the solution.")
 
@@ -95,7 +97,7 @@ def execute_code(code_execution: CodeExecution):
 
         # Execute the code with timeout
         process = subprocess.Popen(
-            ["python", file_path],
+            ["python3", file_path],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -175,6 +177,15 @@ def convert_examples_to_test_code(test_examples, test_code):
     """Receive a list of test examples, generate test code for each one"""
 
     # implementation_code is used as the solution
+    def execute_solution_with_inputs(solution, input):
+        code = solution + '\n\n' + 'solution = Solution()' + '\n\n' + f'print(solution.twoSum({input}))'
+        test_code_execution = CodeExecution(code=code)
+        formatted_code = format_code(test_code_execution)["formatted_code"]
+
+        test_code_execution = CodeExecution(code=formatted_code)
+        execution_result = execute_code(test_code_execution)
+        return execution_result.output
+
 
     output_code_list = []
 
@@ -182,18 +193,18 @@ def convert_examples_to_test_code(test_examples, test_code):
         input = test_example["input"]
         output = test_example["output"]
         name = test_example["name"]
+        
+        correct_output = execute_solution_with_inputs(test_code[:], input).strip()
 
         test_code_template = f"""
-import unittest\n\nclass Test(unittest.TestCase):\n    def test_{name}_{index}(self):\n        solution = Solution()\n        self.assertCountEqual(solution.twoSum({input}), {output})\n\nif __name__ == \"__main__\":\n    unittest.main()\n
+import unittest\n\nclass Test(unittest.TestCase):\n    def test_{name}_{index}(self):\n        solution = Solution()\n        self.assertCountEqual(solution.twoSum({input}), {output}, \"The expected output should be {correct_output}\")\n\nif __name__ == \"__main__\":\n    unittest.main()\n
     """
-        test_code += "\n\n" + test_code_template
 
-        output_code_list.append((test_code, test_example))
+        output_code_list.append((test_code + "\n\n" + test_code_template, test_example, correct_output))
 
     return output_code_list
 
 def fix_test_cases(solution: str, test_cases: str, previous_test_cases: str = "", previous_error: str = ""):
-
     if previous_test_cases:
         previous_test_cases = "\nTest cases: \n" + previous_test_cases
 
@@ -247,6 +258,8 @@ def main(generate_tries: int = 2, fix_tries: int = 1):
     existing_examples = data["test_input_output"]
     new_examples = []
 
+    data["test_examples_debugging"] = []
+    data["test_code_debugging"] = []
     if test_cases_code and solution:
         for _ in tqdm(range(generate_tries)):
             new_examples = generate_test_examples(question=question, constraints=constraints, existing_test_examples=existing_examples)
@@ -257,20 +270,21 @@ def main(generate_tries: int = 2, fix_tries: int = 1):
             print(new_examples_json)
 
             new_tests_list = convert_examples_to_test_code(new_examples_json, solution)
-
             failing_tests = []
             passing_tests = []
-            for test_code, test_example in new_tests_list:
+            for test_code, test_example, test_error in new_tests_list:
                 test_code_execution = CodeExecution(code=test_code)
                 formatted_code = format_code(test_code_execution)["formatted_code"]
 
                 test_code_execution = CodeExecution(code=formatted_code)
                 execution_result = execute_code(test_code_execution)
 
-                if execution_result.error:
-                    failing_tests.append({"name": test_example["name"], "code": test_code, "error": execution_result.error})
-                else:
+                if 'Ran 1 test in' in execution_result.error and 'OK' in execution_result.error:
                     passing_tests.append({"name": test_example["name"], "code": test_code})
+                elif execution_result.error == None:
+                    passing_tests.append({"name": test_example["name"], "code": test_code})
+                else:
+                    failing_tests.append({"name": test_example["name"], "code": test_code, "error": f"The expected output in the assert statement of the test should be {test_error}"})
 
 
             for test in failing_tests:
@@ -293,27 +307,35 @@ def main(generate_tries: int = 2, fix_tries: int = 1):
 
                     print(execution_result)
 
-                    if execution_result.error:
+                    if 'Ran 1 test in' in execution_result.error and 'OK' in execution_result.error:
+                        passing_tests.append({"name": test["name"], "code": new_code_for_test})
+                        print("No errors, breaking")
+                        break
+                    elif execution_result.error == None:
+                        passing_tests.append({"name": test["name"], "code": new_code_for_test})
+                        print("No errors, breaking")
+                        break
+                    else:
                         tries_count += 1
                         previous_test_cases = new_code_for_test
                         previous_error = execution_result.error
                         print(f"Error {previous_error}, trying again")
-                    else:
-                        passing_tests.append({"name": test["name"], "code": new_code_for_test})
-                        print("No errors, breaking")
-                        break
 
             passed_examples = []
-            for test in new_examples:
-                if test in passing_tests:
-                    passed_examples.append(test)
+            for test in new_examples.test_examples:
+                if test.name in set([t['name'] for t in passing_tests]):
+                    passed_examples.append({
+                        'name': test.name,
+                        'input': test.input,
+                        'output': test.output,
+                        'description': test.description
+                    })
 
-            data["test_examples_debugging"] = passed_examples
-            data["test_code_debugging"] = passing_tests
+            data["test_examples_debugging"].extend(passed_examples)
+            data["test_code_debugging"].extend(passing_tests)
 
-        with open("interview_data/two-sum.json", "w") as f:
+        with open("interview_data/two-sum-tests.json", "w") as f:
             json.dump(data, f)
-
 
 if __name__ == "__main__":
     main()
