@@ -13,7 +13,8 @@ load_dotenv()
 
 os.environ["PYDEVD_DISABLE_FILE_VALIDATION"] = "1"
 
-class TestCase(BaseModel):
+class FixedTestCase(BaseModel):
+    rationale: str = Field(description="Think out loud about the error and how you fixed it.")
     unit_test: str = Field(description="The unit test case associated with the solution.")
 
 class CodeExecution(BaseModel):
@@ -163,7 +164,7 @@ Think about all the possible cases given the constraints, which are not covered 
           ]
         }
         ],
-      temperature=1,
+      temperature=0.7,
       max_tokens=2048,
       top_p=1,
       frequency_penalty=0,
@@ -211,35 +212,38 @@ def fix_test_cases(solution: str, test_cases: str, previous_test_cases: str = ""
     if previous_error:
         previous_error = "\nErrors: \n" + previous_error
 
-
     response = client.beta.chat.completions.parse(
-      model="gpt-4o",
-      messages=[
-        {
-          "role": "system",
-          "content": [
+        model="gpt-4o",
+        messages=[
             {
-              "type": "text",
-              "text": "You are an expert software engineer in testing. You have been given a coding problem, a test code which has a test case for that coding problem and some error message from running the test case. Modify the test case to resolve those errors and output the resolved test code."
-            }
-          ]
-        },
-        {
-          "role": "user",
-          "content": [
+                "role": "system",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "You are an expert software engineer in testing. You have been given a coding problem, a test code which has a test case for that coding problem and some error message from running the test case. Modify the test case to resolve those errors and output the resolved test code.",
+                    }
+                ],
+            },
             {
-              "type": "text",
-              "text": "Current solution: \n" + solution + "\n\n" + previous_test_cases + previous_error
-            }
-          ]
-        }
-      ],
-      response_format=TestCase,
-      temperature=1,
-      max_tokens=2048,
-      top_p=1,
-      frequency_penalty=0,
-      presence_penalty=0
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": "Current solution: \n"
+                        + solution
+                        + "\n\n"
+                        + previous_test_cases
+                        + previous_error,
+                    }
+                ],
+            },
+        ],
+        response_format=FixedTestCase,
+        temperature=0.5,
+        max_tokens=2048,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
     )
 
     return response.choices[0].message.parsed.unit_test
