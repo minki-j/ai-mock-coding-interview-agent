@@ -1,35 +1,34 @@
 # AI Mock Coding Interview Agent
 
-## Running on Docker
+## Try this app here
+www.leetscode.up.railway.app
 
-Before you run the docker compose file, please fill in the environment variable in backend/.env file.
+## About this project
 
-After you have the environment variables set, you can run the docker compose file.
+### Application
+![Application Screenshot](screenshots/Screenshot%202024-12-13%20at%2010.27.55%20AM.png)
+![Application Screenshot](screenshots/Screenshot%202024-12-13%20at%2010.20.58%20AM.png)
 
+### Stack
+Front-end: React
+Back-end: FastAPI
+LLM orchestration: LangChain
+Agentic flow engineering: LangGraph
+
+### Cognitive architecture
+
+#### Overall
+![Main System Architecture](backend/agents/graph_diagrams/main_graph.png)
+
+#### Simplified High-level view
+![High level](backend/agents/graph_diagrams/main_graph_high_level.png)
+
+
+## How to run
+
+You can run this project both backend and frontend with a single docker command.
 ```bash
 docker compose up --build -d
 ```
-If you want to see the full running logs, remove the `-d` flag.
-
-To stop the services, run:
-
-```bash
-docker compose down
-```
-
-or `Ctrl + C` in the terminal where docker compose is running.
-
-## HotFix
-
-I have encountered an issue that frontend is telling me that `jwt-decode` is not found. However, it is installed. I have no idea why it is not being detected. So for now, you can run `npm install jwt-decode` to fix the issue.
-
-```bash
-docker compose exec frontend npm install jwt-decode
-```
-
-`frontend` is the name of the service in the docker compose file.
-
-## Accessing the App
-
-After the services are running, you can access the app at `http://localhost:3001`.
-Since the local files are mounted into the container, any changes you make to the files will be reflected in the app.
+After the services are running, you can access the app at `http://localhost:3001`
+Don't forget to fill .env file in /backend and /frontend!
