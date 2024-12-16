@@ -51,7 +51,7 @@ Try the application here: [Link](https://leetscode.up.railway.app)
 3. Configure the environment variables according to the templates
 
 ### Quick Start with Docker
-Run the entire application stack with a single command:
+Run the entire application stack with a single command at root directory:
 
 ```bash
 docker compose up --build -d
