@@ -4,7 +4,7 @@ An intelligent AI-powered coding interview simulator that provides a realistic i
 This project was part of the LLM Agents Hackathon organized by Berkeley as part of their MOOC course ["Large Language Model Agents."](https://llmagents-learning.org/f24)
 
 ## 🚀 Live Demo
-Try the application here: [LeetScode](https://leetscode.up.railway.app)
+Try the application here: [Link](https://leetscode.up.railway.app)
 
 ## 📸 Screenshots
 
