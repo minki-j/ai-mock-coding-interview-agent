@@ -32,11 +32,19 @@ const Home = () => {
     setAllTopics(topics);
   }, [interviews]);
 
-  const filteredInterviews = interviews.filter(question => {
-    const difficultyMatch = !selectedDifficulty || question.difficulty === selectedDifficulty;
-    const topicMatch = !selectedTopic || question.topicTags.some(tag => tag.name === selectedTopic);
-    return difficultyMatch && topicMatch;
-  });
+  const difficultyOrder = {
+    'Easy': 1,
+    'Medium': 2,
+    'Hard': 3
+  };
+
+  const filteredInterviews = interviews
+    .filter(question => {
+      const difficultyMatch = !selectedDifficulty || question.difficulty === selectedDifficulty;
+      const topicMatch = !selectedTopic || question.topicTags.some(tag => tag.name === selectedTopic);
+      return difficultyMatch && topicMatch;
+    })
+    .sort((a, b) => difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]);
 
   const handleStartInterview = async (question) => {
     setIsNavigating(true);
