@@ -63,9 +63,6 @@ The application will be available at:
 ## 🤝 Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
-[MIT License](LICENSE)
-
 ## 🙏 Acknowledgments
 - LangChain team for their outstanding frameworks.
 - Berkeley LLM Agent MOOC team for organizing this hackathon.
