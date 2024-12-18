@@ -5,7 +5,7 @@ This project was part of the LLM Agents Hackathon organized by Berkeley as part 
 
 ## 🚀 Live Demo
 Try the application here: [Link](https://leetscode.up.railway.app)
-
+Watch a demo video here: [Link](https://www.loom.com/share/da2a656f2b29462aaac59691d3f88d42?sid=00bb78bd-ed79-41f8-aa05-4cfc527c7efe)
 ## 📸 Screenshots
 
 ### Home Page
