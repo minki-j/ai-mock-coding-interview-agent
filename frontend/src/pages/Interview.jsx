@@ -124,6 +124,7 @@ const Interview = () => {
       let finalResponse = "";
 
       // To receive Agent's inner process messages(display_decision), we need to call the chat endpoint multiple times until the graph is reached the end.
+      // !! This is not the best way to do it. We need to use "stream" feature of LangGraph instead.
       while (!allDecisionsCompleted) {
         const response = await fetch("/chat", {
           method: "POST",
