@@ -184,6 +184,7 @@ async def init_interview(interview_info: dict):
         },
     )
 
+    # TODO: change to ainvoke to avoid blocking the thread
     main_graph.invoke(
         input={
             "start_date": interview_info["start_date"],
@@ -235,6 +236,7 @@ async def chat(data: dict):
         # If we need to wait for user confirmation, we don't need to invoke the graph
         return None
 
+    # TODO: change to ainvoke to avoid blocking the thread
     output = main_graph.invoke(None, config)
 
     # Get the deepest state's display_decision value
